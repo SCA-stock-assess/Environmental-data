@@ -18,6 +18,10 @@ library(RSelenium)
 # Current year
 curr_yr <- 2023
 
+# Set working directory to correct sub-folder
+setwd("./Hydromet Data")
+
+
 # Hydromet time series ----------------------------------------------------
 
 # The historical time series

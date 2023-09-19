@@ -15,8 +15,10 @@ library(reshape2)
 # Colour palette for the temp-oxy index
 idx_pal <- c("#252525",brewer.pal(n = 11, name = "RdYlGn")[-c(6,11)])
 
-# Load and manipulate data ---------------------------------------------------
+# Set working directory to correct sub-folder
+setwd("./Harbour Survey")
 
+# Load and manipulate data ---------------------------------------------------
 
 # Raw data file names and cell ranges
 filenames <- list.files("./raw data/2023")
