@@ -15,13 +15,10 @@ library(reshape2)
 # Colour palette for the temp-oxy index
 idx_pal <- c("#252525",brewer.pal(n = 11, name = "RdYlGn")[-c(6,11)])
 
-# Set working directory to correct sub-folder
-setwd("./Harbour Survey")
-
 # Load and manipulate data ---------------------------------------------------
 
 # Raw data file names and cell ranges
-filenames <- list.files("./raw data/2023")
+filenames <- list.files("./Harbour Survey/raw data/2023")
 
 # Order of sites
 site_order <- c("5km Center", "Polly's Pt.", "Hohm Isle", "Estuary")
@@ -29,7 +26,7 @@ site_order <- c("5km Center", "Polly's Pt.", "Hohm Isle", "Estuary")
 
 # Load the raw data
 hs0 <- filenames |> 
-  map_dfr(~ read_xlsx(paste0("./raw data/2023/", .x),
+  map_dfr(~ read_xlsx(paste0("./Harbour Survey/raw data/2023/", .x),
                       sheet = "DataAssembly") |> 
             select(-`Meter Unit`)) |>  
   select(-pH) |> 

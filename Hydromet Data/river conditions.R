@@ -18,14 +18,11 @@ library(RSelenium)
 # Current year
 curr_yr <- 2023
 
-# Set working directory to correct sub-folder
-setwd("./Hydromet Data")
-
 
 # Hydromet time series ----------------------------------------------------
 
 # The historical time series
-hist <- read_xlsx("Hydromets_historic.xlsx", na = c("","-999")) %>% 
+hist <- read_xlsx("./Hydromet Data/Hydromets_historic.xlsx", na = c("","-999")) %>% 
   rename(wtemp = water_temp_celcius, atemp = air_temp_celcius,
          gauge = staff_gauge_mH20, depth = sensor_depth_mH20,
          rainfall = rainfall_mm) %>% 
@@ -79,7 +76,7 @@ if(FALSE) {hist |>
 
 
 # The current year time series
-curr <- read_xlsx(paste0("Hydromets_", curr_yr, ".xlsx"), na = c("","-999")) %>% 
+curr <- read_xlsx(paste0("./Hydromet Data/Hydromets_", curr_yr, ".xlsx"), na = c("","-999")) %>% 
   rename(wtemp = water_temp_celcius, atemp = air_temp_celcius,
          gauge = staff_gauge_mH20, depth = sensor_depth_mH20,
          rainfall = rainfall_mm) %>% 
