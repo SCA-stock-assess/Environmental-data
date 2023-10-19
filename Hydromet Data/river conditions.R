@@ -13,7 +13,7 @@ library(mgcv)
 library(rvest)
 library(httr)
 library(jsonlite)
-library(RSelenium)
+#library(RSelenium)
 
 # Current year
 curr_yr <- 2023
