@@ -231,26 +231,38 @@ ts_p_fn <- function(df, hs_var, min_julian, max_julian) {
     ggplot(aes(x = date, y = depth)) +
     facet_grid(site~., scales = "free_y", space = "free_y") +
     geom_raster(aes(fill = value), interpolate = TRUE, alpha = 0.75) +
-    geom_point(data = hs0 |> 
-                 filter(between(julian, min_julian, max_julian)) |> # Truncate raw data
-                 drop_na(salinity:do_sat), 
-               aes(x = date, y = depth),
-               size = 0.2, alpha = 0.15, shape = 8) +
-    scale_fill_distiller(palette="RdYlGn", name = "Temperature (°C)",
-                         labels = as.integer, breaks = c(5,10,15,20), 
-                         limits = c(min(hs0$temp), max(hs0$temp)),
-                         na.value = "transparent") +
+    geom_point(
+      data = hs0 |> 
+        filter(between(julian, min_julian, max_julian)) |> # Truncate raw data
+        drop_na(salinity:do_sat), 
+      aes(x = date, y = depth),
+      size = 0.2, 
+      alpha = 0.15,
+      shape = 8
+    ) +
+    scale_fill_distiller(
+      palette="RdYlGn", name = "Temperature (°C)",
+      labels = as.integer, breaks = c(5,10,15,20), 
+      limits = c(min(hs0$temp), max(hs0$temp)),
+      na.value = "transparent"
+    ) +
     geom_contour(aes(z = value), binwidth = 2, colour = "black", alpha = 0.2) +
     labs(y = "Depth (m)", x = NULL) +
     scale_y_reverse(expand = c(0,0), labels = as.integer) +
-    scale_x_date(expand = c(0,0), breaks = "2 weeks", date_labels = "%d %b") +
-    theme(strip.background = element_rect(fill = "white"),
-          legend.position = c(0.68,0.62),
-          legend.direction = "horizontal",
-          legend.justification = c("left", "bottom"),
-          legend.background = element_rect(colour = "black",fill = alpha("white",0.75)),
-          panel.spacing.y = unit(1, "lines"),
-          axis.title.y = element_text(vjust = 2))
+    scale_x_date(
+      expand = c(0,0), 
+      breaks = "2 weeks", 
+      date_labels = "%d %b"
+    ) +
+    theme(
+      strip.background = element_rect(fill = "white"),
+      legend.position = c(0.68,0.62),
+      legend.direction = "horizontal",
+      legend.justification = c("left", "bottom"),
+      legend.background = element_rect(colour = "black",fill = alpha("white",0.75)),
+      panel.spacing.y = unit(1, "lines"),
+      axis.title.y = element_text(vjust = 2)
+    )
 }
 
 # Render plots for each variable
@@ -351,8 +363,11 @@ intp_dist_fn <- function(var, day_of_year) {
     select(dist_km, depth, .data[[var]]) |> 
     #add_row(depth = c(30,40), idx_cat = c(2, 0.5), dist_km = c(3.45, 3.45)) |> # Hacky fix for 16 June
     filter(!is.na(.data[[var]])) |>  # Added step on 21 June 2023. Might help when one site missing data?
-    mba.surf(no.X = 61, no.Y = 61, extend = T,
-             n = 6, m = 1) # Parameters to control the stretch along the x axis
+    mba.surf(
+      no.X = 61, no.Y = 61, 
+      extend = T,
+      n = 6, m = 1 # Parameters to control the stretch along the x axis
+    ) 
   
   dimnames(df$xyz.est$z) <- list(df$xyz.est$x, df$xyz.est$y)
   
@@ -372,35 +387,47 @@ bathy <- data.frame(
 xs_p_fn <- function(df, date_tag, ...) {
   df %>% 
     # Merge in columns delineating where actual observations occurred
-    difference_left_join(hs0 |> 
-                           drop_na(salinity:do_sat) |> 
-                           select(julian, depth, dist_km, plotting_shift) |> 
-                           mutate(depth_sample = depth),
-                         by = c("julian", "depth", "dist_km"),
-                         max_dist = 0.2) |>
+    difference_left_join(
+      hs0 |> 
+        drop_na(salinity:do_sat) |> 
+        select(julian, depth, dist_km, plotting_shift) |> 
+        mutate(depth_sample = depth),
+      by = c("julian", "depth", "dist_km"),
+      max_dist = 0.2
+    ) |>
     select(-contains(".y")) |> 
     rename_with(~ gsub(".x", "", .x)) |> 
     ggplot(aes(x = dist_km, y = depth), ...) +
     geom_raster(aes(fill = value), interpolate = TRUE, alpha = 0.75) +
-    geom_point(aes(x = plotting_shift, y = depth_sample),
-               size = 0.2, alpha = 0.05, shape = 8) +
+    geom_point(
+      aes(x = plotting_shift, y = depth_sample),
+      size = 0.2, 
+      alpha = 0.05,
+      shape = 8
+    ) +
     #geom_contour(aes(z = value), binwidth = 1, colour = "black", alpha = 0.2) +
     geom_polygon(data = bathy, fill = "grey80", colour = "black") +
-    labs(y = "Depth (m)", 
-         x = "Distance from river mouth (km)",
-         title = paste("Survey date:", date_tag)) +
-    coord_cartesian(xlim = c(0, max(filter(hs, !is.na(salinity), julian == max(julian))$dist_km)) + 0.01, 
-                    ylim = c(60, 0), 
-                    expand = F) +
+    labs(
+      y = "Depth (m)", 
+      x = "Distance from river mouth (km)",
+      title = paste("Survey date:", date_tag)
+    ) +
+    coord_cartesian(
+      xlim = c(0, max(filter(hs, !is.na(salinity), julian == max(julian))$dist_km)) + 0.01, 
+      ylim = c(60, 0), 
+      expand = F
+    ) +
     scale_y_reverse(labels = as.integer) +
-    theme(strip.background = element_rect(fill = "white"),
-          legend.position = c(0.02,0.2),
-          legend.direction = "horizontal",
-          legend.justification = c("left", "bottom"),
-          legend.background = element_rect(colour = "black"),
-          panel.spacing.y = unit(1, "lines"),
-          axis.title.y = element_text(vjust = 2))
-  }
+    theme(
+      strip.background = element_rect(fill = "white"),
+      legend.position = c(0.02,0.2),
+      legend.direction = "horizontal",
+      legend.justification = c("left", "bottom"),
+      legend.background = element_rect(colour = "black"),
+      panel.spacing.y = unit(1, "lines"),
+      axis.title.y = element_text(vjust = 2)
+    )
+}
 
 # Take maximum date where all sites have data:
 complete_survey <- hs |> 
@@ -417,25 +444,34 @@ complete_survey <- hs |>
 xs_p_fn(intp_dist_fn("idx_cat", max_jul) %>% 
           # Squish the interpolated index values into [0,5]
           mutate(value = (5-0)*((value - min(value))/(max(value)-min(value)))+0),
-        date_tag = as.Date(max_jul, 
-                           format = "%j", 
-                           origin = as.Date("2022-12-31")) |> 
+        date_tag = as.Date(
+          max_jul, 
+          format = "%j", 
+          origin = as.Date(paste0(curr_year-1, "-12-31"))
+        ) |> 
           format("%d-%b")
-        ) +
-  scale_fill_gradientn(colours = idx_pal,
-                       name = "Temp-oxy\nindex", 
-                       limits = c(0,5)) 
+) +
+  scale_fill_gradientn(
+    colours = idx_pal,
+    name = "Temp-oxy\nindex", 
+    limits = c(0,5)
+  ) 
+
 
 # Plot for Dissolved Oxygen
 xs_p_fn(intp_dist_fn("do_mgl", max_jul),
-        date_tag = as.Date(max_jul, 
-                           format = "%j", 
-                           origin = as.Date("2022-12-31")) |> 
+        date_tag = as.Date(
+          max_jul, 
+          format = "%j", 
+          origin = as.Date(paste0(curr_year-1, "-12-31"))
+        ) |> 
           format("%d-%b")
 ) +
-  scale_fill_gradientn(colours = idx_pal,
-                       name = "Dissolved\noxygen (mg/L)", 
-                       limits = c(0,12))
+  scale_fill_gradientn(
+    colours = idx_pal,
+    name = "Dissolved\noxygen (mg/L)", 
+    limits = c(0, 12)
+  )
 
 
 
@@ -447,14 +483,21 @@ xs_p_fn(intp_dist_fn("do_mgl", max_jul),
 test <- unique(hs$julian) |> 
   as.list() |> 
   purrr::set_names() |> 
-  map_dfr(~ intp_dist_fn("idx_cat", .x) |> 
-            mutate(value = (5-0) * ((value - min(value)) / (max(value) - min(value))) + 0),
-          .id = "julian") |> 
-  # Squish values into [0,5]
-  mutate(julian = as.numeric(julian),
-         date = as.Date(julian, format = "%j", origin = as.Date("2021-12-31"))) |> 
+  map_dfr(
+    ~ intp_dist_fn("idx_cat", .x) |> 
+      mutate(value = (5-0) * ((value - min(value)) / (max(value) - min(value))) + 0),
+    .id = "julian"
+  ) |> 
+  mutate(
+    julian = as.numeric(julian),
+    date = as.Date(
+      julian, 
+      format = "%j", 
+      origin = as.Date(paste0(curr_year-1, "-12-31"))
+    )
+  ) |> 
   filter(is.finite(value)) # Drop NaN values
-  
+
 
 # Save the plot as an animation with frames for each date
 anim <- xs_p_fn(test, 
