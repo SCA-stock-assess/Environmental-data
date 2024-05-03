@@ -1,8 +1,9 @@
 # Packages ----------------------------------------------------------------
 
-pkgs <- c("tidyverse", "MBA","reshape2","magrittr","RColorBrewer", "readxl")
+pkgs <- c("tidyverse", "MBA","reshape2","magrittr","RColorBrewer", "readxl", "here")
 #install.packages(pkgs)
 
+library(here)
 library(readxl)
 library(tidyverse); theme_set(theme_bw(base_size=18))
 library(fuzzyjoin)
@@ -15,10 +16,20 @@ library(reshape2)
 # Colour palette for the temp-oxy index
 idx_pal <- c("#252525",brewer.pal(n = 11, name = "RdYlGn")[-c(6,11)])
 
+# Analysis year
+curr_yr <- 2024
+
 # Load and manipulate data ---------------------------------------------------
 
 # Raw data file names and cell ranges
-filenames <- list.files("./Harbour Survey/raw data/2023")
+filenames <- list.files(
+  here(
+    "Harbour Survey",
+    "raw data",
+    curr_yr
+  ),
+  full.names = TRUE
+)
 
 # Order of sites
 site_order <- c("5km Center", "Polly's Pt.", "Hohm Isle", "Estuary")
@@ -26,39 +37,46 @@ site_order <- c("5km Center", "Polly's Pt.", "Hohm Isle", "Estuary")
 
 # Load the raw data
 hs0 <- filenames |> 
-  map_dfr(~ read_xlsx(paste0("./Harbour Survey/raw data/2023/", .x),
-                      sheet = "DataAssembly") |> 
-            select(-`Meter Unit`)) |>  
+  map_dfr(
+    ~ read_xlsx(.x, sheet = "DataAssembly") |> 
+      select(-`Meter Unit`)
+  ) |>  
   select(-pH) |> 
-  mutate(site = case_when(
-    StationCd == "PASR" ~ "River",
-    StationCd == "PAOUT" ~ "Estuary",
-    StationCd == "PAHI2" ~ "Hohm Isle",
-    StationCd == "PAPP2" ~ "Polly's Pt.",
-    StationCd == "PA05" ~ "5km Center"
-  )) |> 
+  mutate(
+    site = case_when(
+      StationCd == "PASR" ~ "River",
+      StationCd == "PAOUT" ~ "Estuary",
+      StationCd == "PAHI2" ~ "Hohm Isle",
+      StationCd == "PAPP2" ~ "Polly's Pt.",
+      StationCd == "PA05" ~ "5km Center"
+    )
+  ) |> 
   filter(site != "River")  |>  
-  mutate(date = as.Date(SampleTime), 
-         julian = date |> format("%j") |> as.integer(),
-         site = factor(site, levels = site_order),
-         dist_km = case_when(
-           site == "5km Center" ~ 5,
-           site == "Hohm Isle" ~ 2.24,
-           site == "Polly's Pt." ~ 3.45,
-           site == "Estuary" ~ 0),
-         # Shift the measurements at river and 5km mark for plotting
-         plotting_shift = case_when(
-           dist_km == 5 ~ 4.95, 
-           dist_km == 0 ~ 0.05, 
-           TRUE ~ dist_km
-         )) |> 
-  filter(!between(date, as.Date("2022-04-01"), as.Date("2022-04-30"))) |> # Remove April surveys conducted using handheld probe
+  mutate(
+    date = as.Date(SampleTime), 
+    julian = date |> format("%j") |> as.integer(),
+    site = factor(site, levels = site_order),
+    dist_km = case_when(
+      site == "5km Center" ~ 5,
+      site == "Hohm Isle" ~ 2.24,
+      site == "Polly's Pt." ~ 3.45,
+      site == "Estuary" ~ 0),
+    # Shift the measurements at river and 5km mark for plotting
+    plotting_shift = case_when(
+      dist_km == 5 ~ 4.95, 
+      dist_km == 0 ~ 0.05, 
+      TRUE ~ dist_km
+    )
+  ) |> 
+  #filter(!between(date, as.Date("2022-04-01"), as.Date("2022-04-30"))) |> # Remove April surveys conducted using handheld probe
   select(date, julian, site, Depth:DO_Sat, dist_km, plotting_shift) |> 
-  rename("temp" = "WaterTempC",
-         "salinity" = "SalinityPPT",
-         "do_mgl" = "DO_Conc",
-         "do_sat" = "DO_Sat",
-         "depth" = "Depth")
+  rename(
+    "temp" = "WaterTempC",
+    "salinity" = "SalinityPPT",
+    "do_mgl" = "DO_Conc",
+    "do_sat" = "DO_Sat",
+    "depth" = "Depth"
+  )
 
 
 # Extract max depths
@@ -68,40 +86,46 @@ max_depths <- hs0 |>
 
 # 3 August rig
 # Sneaks in the Polly Pt. measurements from 20m depth for the missing 20-m 5km center measurements
-aug3 <- hs0 |> 
-  filter(julian == 215,
-         site == "Polly's Pt.",
-         depth == 20) |> 
-  mutate(site = "5km Center")
+# aug3 <- hs0 |> 
+#   filter(julian == 215,
+#          site == "Polly's Pt.",
+#          depth == 20) |> 
+#   mutate(site = "5km Center")
 
 
 # What values correspond to the mean and +/- 1 SD of do & temp?
 hs0 |> 
-  summarize(across(temp:do_mgl, 
-                   .fns = list(mean=mean,sd=sd), 
-                   .names = "{.fn}_{.col}", 
-                   na.rm = T))
+  summarize(
+    across(
+      temp:do_mgl, 
+      .fns = list(mean=mean, sd=sd), 
+      .names = "{.fn}_{.col}", 
+      na.rm = T
+    )
+  )
 # We want the index to reflect moderate temps as 15C not 11.5C and 
 # moderate do as 5ppm not 6.65 ppm, so we opt to manually enter the
 # center and scale values in the index calculations below:
 
 
-  
+
 # Add data to expanded dataframe with all depths for each site to infill missing observations
 # (assumes uniform water column below bottom measurement)
-hs <- with(hs0, expand.grid(
-  date = unique(date),
-  site = levels(site),
-  depth = unique(depth)
-)) |> 
+hs <- with(
+  hs0, 
+  expand.grid(
+    date = unique(date),
+    site = levels(site),
+    depth = unique(depth)
+  )
+) |> 
   left_join(max_depths) |> 
   filter(!depth > max_depth) |> 
   select(-max_depth) |> 
-  left_join(hs0 |> 
-              add_row(aug3) # Overwrite Aug 3 data
-            ) |>
-  mutate(julian = date |> format("%j") |> as.integer(),
- # Add lat/long data for each site
+  left_join(hs0) |>
+  mutate(
+    julian = date |> format("%j") |> as.integer(),
+    # Add lat/long data for each site
     lat = case_when(
       site == "5km Center" ~ 49.201260,
       site == "Polly's Pt." ~ 49.215729,
@@ -126,22 +150,26 @@ hs <- with(hs0, expand.grid(
          do_cs = scale(do_mgl, center = 5, scale = 2)) |> 
   #mutate(temp_cs = -temp_cs) |>   # Flip the sign on the temp index
   rowwise() |> 
-  mutate(hold_idx = case_when(  # calculate combined index
-    do_mgl < 5 ~ mean(c(3*do_cs, temp_cs)),
-    between(do_mgl,5, 6) ~ mean(c(2*do_cs, temp_cs)),
-    do_mgl > 6 ~ mean(c(do_cs, temp_cs))
-  )) |>
+  mutate(
+    hold_idx = case_when(  # calculate combined index
+      do_mgl < 5 ~ mean(c(3*do_cs, temp_cs)),
+      between(do_mgl,5, 6) ~ mean(c(2*do_cs, temp_cs)),
+      do_mgl > 6 ~ mean(c(do_cs, temp_cs))
+    )
+  ) |>
   ungroup() |> #Strip rowwise nature
   # Add categorical index based on Howard Stiff's recommendations
-  mutate(idx_cat = case_when(
-    temp < 12 & do_mgl > 4 ~ 5,
-    between(temp, 12,16) & do_mgl > 4 ~ 4,
-    between(temp, 16,18) & do_mgl > 4 ~ 3,
-    temp < 18 & between(do_mgl,3,4) ~ 2,
-    between(temp, 18,24) | between(do_mgl,2,3) ~ 1,
-    temp > 24 | do_mgl < 2 ~ 0 # Catastrophic levels
-  ))
-  
+  mutate(
+    idx_cat = case_when(
+      temp < 12 & do_mgl > 4 ~ 5,
+      between(temp, 12,16) & do_mgl > 4 ~ 4,
+      between(temp, 16,18) & do_mgl > 4 ~ 3,
+      temp < 18 & between(do_mgl,3,4) ~ 2,
+      between(temp, 18,24) | between(do_mgl,2,3) ~ 1,
+      temp > 24 | do_mgl < 2 ~ 0 # Catastrophic levels
+    )
+  )
+
 
 
 # Define plotting function and interpolate time series --------------------
@@ -168,9 +196,11 @@ intp_fn <- function(station, var, stretch) {
   dimnames(df$xyz.est$z) <- list(df$xyz.est$x, df$xyz.est$y)
   
   melt(df$xyz.est$z, varnames = c('julian', 'depth')) |> 
-    mutate(julian = round(julian, 0),
-           date = as.Date(julian, origin = "2022-12-31"),
-           depth = round(depth, 0)) |> 
+    mutate(
+      julian = round(julian, 0),
+      date = as.Date(julian, origin = paste0(curr_yr-1, "-12-31")),
+      depth = round(depth, 0)
+    ) |> 
     group_by(date, julian, depth) |> 
     summarize(value = mean(value)) |> 
     ungroup()
@@ -256,9 +286,13 @@ idx <- map_df(sites, ~intp_fn(.x, hold_idx, stretch = (1/1)), .id = "site") |>
 
 # Plot from the continuous index 
 idx_p <- ts_p_fn(idx, "hold_idx", min_jul,max_jul) + 
-  scale_fill_distiller(palette="RdYlGn", trans = "reverse", name = "Index",
-                       labels = as.integer,
-                       limits = c(max(idx$value), min(idx$value)))
+  scale_fill_distiller(
+    palette="RdYlGn", 
+    trans = "reverse", 
+    name = "Index",
+    labels = as.integer,
+    limits = c(max(idx$value), min(idx$value))
+  )
 
 idx_p[["layers"]][[3]][["aes_params"]][["binwidth"]] <- 1 # Change contour spacing
 
@@ -272,15 +306,19 @@ idx_p
 idx_c <- map_df(sites, ~intp_fn(.x, idx_cat, stretch = (1/1)), .id = "site") |> 
   # Constrain values to [5,0]
   # Equation below from: https://stats.stackexchange.com/a/281164
-  mutate(value = ((5-0)*((value - min(value))/(max(value)-min(value))))+0,
-         site = factor(site, levels = site_order)) 
+  mutate(
+    value = ((5-0)*((value - min(value))/(max(value)-min(value))))+0,
+    site = factor(site, levels = site_order)
+  ) 
 
 
 idxcat_p <- ts_p_fn(idx_c, "idx_cat", min_jul, max_jul) + 
   # Custom colour scale based on the index and Howard Stiff's suggestions
-  scale_fill_gradientn(colours = idx_pal,
-                       name = "Temp-oxy\nindex",
-                       limits = c(0,5))
+  scale_fill_gradientn(
+    colours = idx_pal,
+    name = "Temp-oxy\nindex",
+    limits = c(0,5)
+  )
 
 idxcat_p[["layers"]][[3]][["stat_params"]][["binwidth"]] <- 1 # Change contour spacing
 
@@ -303,7 +341,7 @@ intp_dist_fn <- function(var, day_of_year) {
     #Add some rows to extend interpolated values down to 60 m. 
     #Assumes linear water column below bottom deepest measurement at 5km site
     add_row(depth = c(55,60), site = rep("5km Center", 2)) |> 
-    add_row(depth = c(25,30), site = rep("Polly's Pt.", 2)) |> # Hacky fix for 7 July 
+    #add_row(depth = c(25,30), site = rep("Polly's Pt.", 2)) |> # Hacky fix for 7 July 
     #filter(!(site %in% site_order[-1] & is.na(.data[[var]]))) |> #.data[[]] for when variable names are given in quotes
     arrange(site, depth) |> 
     group_by(site) |> 
@@ -325,8 +363,10 @@ intp_dist_fn <- function(var, day_of_year) {
 
 
 # Manually input bathymetric data from web application: https://data.chs-shc.ca/map
-bathy <- data.frame(dist_km = c(-0.1,-0.1,0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5,4.75,4.8,4.85, 5.01),
-                    depth = c(61,10,12, 15, 18, 20, 24, 30, 33, 33, 35, 35,46,55,61))
+bathy <- data.frame(
+  dist_km = c(-0.1,-0.1,0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5,4.75,4.8,4.85, 5.01),
+  depth = c(61,10,12, 15, 18, 20, 24, 30, 33, 33, 35, 35,46,55,61)
+)
 
 # Plotting function
 xs_p_fn <- function(df, date_tag, ...) {
