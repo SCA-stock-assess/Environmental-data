@@ -278,30 +278,89 @@ hist_sum |>
 
 # Pilot web scraping to read data directly --------------------------------
 
-url <- "http://www.pacfish.ca/wcviweather/"
 
-session <- session(url)
-pg_form <- html_form(session)[[1]]
+# Load the required libraries
+library(RSelenium)
 
-test <- read_html(url)
+# Identify latest chrome version
+chrome_ver <- list.files("C:/Users/brownn/AppData/Local/Chrome/chrome-win32") |> 
+  str_subset("([[:digit:]]+\\.){3}(?=[[:digit:]]+)") |> 
+  tail(n = 1) |> 
+  str_extract("([[:digit:]]+\\.){3}[[:digit:]]+")
+  
 
-node <- html_elements(test, "a") |> 
-  html_attr("href") |> 
-  str_subset("Sproat|Stamp")
+# Find chromedriver path on computer
+chromedriver_dir <- binman::app_dir("chromedriver") |> 
+  str_replace_all("\\\\", "/") # Fix backslashes in directory name
 
-paste0(url, node[1]) |> 
-  read_html() |> 
-  html_elements("div") |> 
-  html_table()
+# Start a Selenium server and open a web browser
+rD <- rsDriver(browser = "phantomjs") # Can't get the selenium driver to connect to the server. 
+# Need to spend some time troubleshooting
 
 
-# Suggested from stack overflow
-start_date <- as.Date('2023-05-01')
-end_date <- Sys.Date()
+remDr <- rD[["client"]]
+remDr$open()
 
-pair_ids <- session |> 
-  html_elements("input") |> 
-  html_attr("id")
+# Specify the URL of the web page with the date picker
+url <- "http://www.pacfish.ca/wcviweather/Content%20Pages/Sproat/Temperature.aspx"
+remDr$navigate(url)
+
+# Wait for the page to load completely
+Sys.sleep(5)  # Adjust the sleep duration as needed
+
+# Find and interact with the date picker input element
+date_picker_input <- remDr$findElement(using = "css", "#datepicker")
+date_picker_input$clickElement()
+
+# Specify the start and end dates you want to select in the date picker
+start_date <- "2023-01-01"
+end_date <- "2023-12-31"
+
+# Enter the start date
+date_picker_input$sendKeysToElement(list(start_date), key = "enter")
+
+# Enter the end date
+date_picker_input$sendKeysToElement(list(end_date), key = "enter")
+
+# Submit the date range selection (assuming there is a "Submit" button)
+submit_button <- remDr$findElement(using = "css", "#submit-button")
+submit_button$clickElement()
+
+# Wait for the page to load the data
+Sys.sleep(5)  # Adjust the sleep duration as needed
+
+# At this point, you can proceed to scrape the temperature data as previously shown
+
+# ...
+
+# Stop the Selenium server and close the browser
+remDr$close()
+rD[["server"]]$stop()
+
+
+
+
+
+
+
+
+# Load the required libraries
+library(rvest)
+
+# Specify the URL of the web page you want to scrape
+url <- "http://www.pacfish.ca/wcviweather/Content%20Pages/Sproat/Temperature.aspx"
+
+# Read the HTML content of the page
+webpage <- read_html(url)
+
+# Locate the temperature data table using CSS selectors
+temperature_data <- webpage %>%
+  html_nodes("table") %>%
+  .[[2]] %>%
+  html_table(fill = TRUE)
+
+# Print the scraped temperature data
+print(temperature_data)
 
 
 # Try RSelenium
