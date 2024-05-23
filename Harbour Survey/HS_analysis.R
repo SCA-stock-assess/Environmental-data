@@ -5,7 +5,7 @@ pkgs <- c("tidyverse", "MBA","reshape2","magrittr","RColorBrewer", "readxl", "he
 
 library(here)
 library(readxl)
-library(tidyverse); theme_set(theme_bw(base_size=18))
+library(tidyverse); theme_set(theme_bw(base_size=15))
 library(fuzzyjoin)
 library(gganimate)
 library(RColorBrewer)
@@ -256,9 +256,9 @@ ts_p_fn <- function(df, hs_var, min_julian, max_julian) {
     ) +
     theme(
       strip.background = element_rect(fill = "white"),
-      legend.position = c(0.68,0.62),
+      legend.position = c(0.98,0.60),
       legend.direction = "horizontal",
-      legend.justification = c("left", "bottom"),
+      legend.justification = c("right", "bottom"),
       legend.background = element_rect(colour = "black",fill = alpha("white",0.75)),
       panel.spacing.y = unit(1, "lines"),
       axis.title.y = element_text(vjust = 2)
@@ -268,10 +268,11 @@ ts_p_fn <- function(df, hs_var, min_julian, max_julian) {
 # Render plots for each variable
 ts_p_fn(temps, "temp", min_jul, max_jul) # Temperature
 
-ts_p_fn(do, "do_mgl", min_jul, max_jul) + #DO (plus appropriate legend tweaks)
-  scale_fill_distiller(palette="RdYlGn", trans = "reverse", name = "DO (mg/L)",
-                       labels = as.integer, breaks = c(3,6,9,12),
-                       limits = c(max(do$value),min(do$value)))
+(do_ts_plot <- ts_p_fn(do, "do_mgl", min_jul, max_jul) + #DO (plus appropriate legend tweaks)
+    scale_fill_distiller(palette="RdYlGn", trans = "reverse", name = "DO (mg/L)",
+                         labels = as.integer, breaks = c(3,6,9,12),
+                         limits = c(max(do$value),min(do$value)))
+)
 
 sal_p <- ts_p_fn(sal, "salinity", min_jul, max_jul) + #Salinity (plus appropriate legend tweaks)
   scale_fill_distiller(direction = 1, name = "Salinity (ppt)",
@@ -280,6 +281,21 @@ sal_p <- ts_p_fn(sal, "salinity", min_jul, max_jul) + #Salinity (plus appropriat
 sal_p[["layers"]][[3]][["stat_params"]][["binwidth"]] <- 5 #5ppm contours
 
 sal_p
+
+
+# Save the DO plot
+ggsave(
+  filename = paste0(
+    here("Harbour Survey", "plots"),
+    "/R-PLOT_time series DO",
+    Sys.Date(),
+    ".png"
+  ),
+  plot = do_ts_plot,
+  height = 7,
+  width = 9,
+  units = "in"
+)
 
 
 # Clean up the workspace
@@ -336,6 +352,20 @@ idxcat_p[["layers"]][[3]][["stat_params"]][["binwidth"]] <- 1 # Change contour s
 
 idxcat_p
 
+
+# Save time series plot
+ggsave(
+  filename = paste0(
+    here("Harbour Survey", "plots"),
+    "/R-PLOT_time series temp-oxy index",
+    Sys.Date(),
+    ".png"
+  ),
+  plot = idxcat_p,
+  height = 7,
+  width = 9,
+  units = "in"
+)
 
 # Clean up the workspace
 rm(idx, idx_c, idx_p, idxcat_p)
@@ -420,7 +450,7 @@ xs_p_fn <- function(df, date_tag, ...) {
     scale_y_reverse(labels = as.integer) +
     theme(
       strip.background = element_rect(fill = "white"),
-      legend.position = c(0.02,0.2),
+      legend.position = c(0.02,0.02),
       legend.direction = "horizontal",
       legend.justification = c("left", "bottom"),
       legend.background = element_rect(colour = "black"),
@@ -441,38 +471,61 @@ complete_survey <- hs |>
 
 
 # Plot for temp-oxy index
-xs_p_fn(intp_dist_fn("idx_cat", max_jul) %>% 
-          # Squish the interpolated index values into [0,5]
-          mutate(value = (5-0)*((value - min(value))/(max(value)-min(value)))+0),
-        date_tag = as.Date(
-          max_jul, 
-          format = "%j", 
-          origin = as.Date(paste0(curr_year-1, "-12-31"))
-        ) |> 
-          format("%d-%b")
+(xs_plot_idx <- xs_p_fn(
+  intp_dist_fn("idx_cat", max_jul) %>% 
+    # Squish the interpolated index values into [0,5]
+    mutate(value = (5-0)*((value - min(value))/(max(value)-min(value)))+0),
+  date_tag = as.Date(
+    max_jul, 
+    format = "%j", 
+    origin = as.Date(paste0(curr_yr-1, "-12-31"))
+  ) |> 
+    format("%d-%b")
 ) +
-  scale_fill_gradientn(
-    colours = idx_pal,
-    name = "Temp-oxy\nindex", 
-    limits = c(0,5)
-  ) 
+    scale_fill_gradientn(
+      colours = idx_pal,
+      name = "Temp-oxy\nindex", 
+      limits = c(0,5)
+    ) 
+)
 
 
 # Plot for Dissolved Oxygen
-xs_p_fn(intp_dist_fn("do_mgl", max_jul),
-        date_tag = as.Date(
-          max_jul, 
-          format = "%j", 
-          origin = as.Date(paste0(curr_year-1, "-12-31"))
-        ) |> 
-          format("%d-%b")
+(xs_plot_do <- xs_p_fn(
+  intp_dist_fn("do_mgl", max_jul),
+  date_tag = as.Date(
+    max_jul, 
+    format = "%j", 
+    origin = as.Date(paste0(curr_yr-1, "-12-31"))
+  ) |> 
+    format("%d-%b")
 ) +
-  scale_fill_gradientn(
-    colours = idx_pal,
-    name = "Dissolved\noxygen (mg/L)", 
-    limits = c(0, 12)
-  )
+    scale_fill_gradientn(
+      colours = idx_pal,
+      name = "Dissolved\noxygen (mg/L)", 
+      limits = c(0, 12)
+    )
+)
 
+
+# Save plots
+list(xs_plot_do, xs_plot_idx) |> 
+  set_names(c("DO", "Index")) |> 
+  iwalk(
+    ~ggsave(
+      plot = .x, 
+      filename = paste0(
+        here("Harbour Survey", "plots"),
+        "/R-PLOT_Inlet cross section",
+        .y,
+        Sys.Date(),
+        ".png"
+      ),
+      height = 3,
+      width = 8,
+      units = "in"
+    )
+  )
 
 
 # Animated time series of Inlet cross-section -----------------------------
@@ -493,7 +546,7 @@ test <- unique(hs$julian) |>
     date = as.Date(
       julian, 
       format = "%j", 
-      origin = as.Date(paste0(curr_year-1, "-12-31"))
+      origin = as.Date(paste0(curr_yr-1, "-12-31"))
     )
   ) |> 
   filter(is.finite(value)) # Drop NaN values
