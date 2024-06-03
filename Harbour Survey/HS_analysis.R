@@ -181,6 +181,12 @@ max_jul <- max(hs$julian)
 min_jul <- max_jul - 60
 
 
+# Define colour palette for DO (requires max DO value from hs)
+do_pal <- idx_pal |> 
+  as_tibble_col(column_name = "colour") |> 
+  mutate(value = c(0, 1, 2, 3, 4, 6, 8, 10, 12, max(hs$do_mgl, na.rm = TRUE)))
+
+
 
 # Create function that interpolates values between surveys
 intp_fn <- function(station, var, stretch) {
@@ -269,9 +275,13 @@ ts_p_fn <- function(df, hs_var, min_julian, max_julian) {
 ts_p_fn(temps, "temp", min_jul, max_jul) # Temperature
 
 (do_ts_plot <- ts_p_fn(do, "do_mgl", min_jul, max_jul) + #DO (plus appropriate legend tweaks)
-    scale_fill_distiller(palette="RdYlGn", trans = "reverse", name = "DO (mg/L)",
-                         labels = as.integer, breaks = c(3,6,9,12),
-                         limits = c(max(do$value),min(do$value)))
+    scale_fill_gradientn(
+      colours = do_pal$colour, 
+      name = "DO (mg/L)",
+      labels = as.integer, 
+      breaks = c(0, 4, 8, 12),
+      values = scales::rescale(do_pal$value, to = c(0, 1)),
+    )
 )
 
 sal_p <- ts_p_fn(sal, "salinity", min_jul, max_jul) + #Salinity (plus appropriate legend tweaks)
@@ -501,9 +511,11 @@ complete_survey <- hs |>
     format("%d-%b")
 ) +
     scale_fill_gradientn(
-      colours = idx_pal,
-      name = "Dissolved\noxygen (mg/L)", 
-      limits = c(0, 12)
+      colours = do_pal$colour, 
+      name = "DO (mg/L)",
+      labels = as.integer, 
+      breaks = c(0, 4, 8, 12),
+      values = scales::rescale(do_pal$value, to = c(0, 1)),
     )
 )
 
