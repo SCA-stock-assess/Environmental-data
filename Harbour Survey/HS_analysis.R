@@ -227,7 +227,10 @@ do <- map_df(sites, ~intp_fn(.x, do_mgl, stretch = (1/1)),.id = "site") |>
 
 # Salinity
 sal <- map_df(sites, ~intp_fn(.x, salinity, stretch = (1/1)),.id = "site") |> 
-  mutate(site = factor(site, levels = site_order))
+  mutate(
+    site = factor(site, levels = site_order),
+    value = if_else(value < 0, 0, value)
+  )
 
 
 # Raster plot for time series data (based on temp data, tweaks needed for DO and salinity)
@@ -284,9 +287,20 @@ ts_p_fn(temps, "temp", min_jul, max_jul) # Temperature
     )
 )
 
+
+# Custom palette for salinity, per Howard's request
+sal_pal <- brewer.pal(9, "Blues") |> 
+  as_tibble_col(column_name = "colour") |> 
+  mutate(value = c(0, 15, 25, 27, 29, 31, 33, 35, 40))
+  
+
 sal_p <- ts_p_fn(sal, "salinity", min_jul, max_jul) + #Salinity (plus appropriate legend tweaks)
-  scale_fill_distiller(direction = 1, name = "Salinity (ppt)",
-                       limits = c(min(sal$value), max(sal$value))) 
+  scale_fill_gradientn(
+    colours = sal_pal$colour, 
+    name = "Salinity (ppt)",
+    labels = as.integer, 
+    values = scales::rescale(sal_pal$value, to = c(0, 1)),
+  )
 
 sal_p[["layers"]][[3]][["stat_params"]][["binwidth"]] <- 5 #5ppm contours
 
