@@ -5,7 +5,7 @@ pkgs <- c(
 #install.packages(pkgs)
 
 library(here)
-library(tidyverse); theme_set(theme_bw(base_size = 22))
+library(tidyverse); theme_set(theme_bw(base_size = 14))
 library(readxl)
 library(purrr)
 library(janitor)
@@ -195,7 +195,7 @@ hist_doy <- hist_sum |>
 # Average graph
 legend <- c(paste0("Historical average (2013-", curr_yr - 1, ")"), as.character(curr_yr))
 
-hist_sum |> 
+(comp_plot <- hist_sum |> 
   filter(var %in% c("wtemp", "depth")) %>% 
   mutate(
     var = case_when(
@@ -283,6 +283,17 @@ hist_sum |>
     strip.placement = "outside",
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
+)
+  
+
+# Save the plot
+ggsave(
+  plot = comp_plot,
+  here("Hydromet Data", "plots", "R-PLOT_Stamp-Sproat_Hydromets.png"),
+  width = 6,
+  height = 4.5,
+  units = "in"
+)
 
 
 # Weekly average temperatures
@@ -370,7 +381,7 @@ hist_sum |>
 
 
 
-# Water Survey of Canada gauge at Papermill Dam ---------------------------
+# Pull data from Water Survey of Canada gauge at Papermill Dam -------------------------
 
 library(httr)
 library(jsonlite)
@@ -385,7 +396,7 @@ offset <- 0
 station_name <- "somass"
 
 # Initialize an empty data frame to store the results
-all_data <- data.frame()
+pmd_data <- data.frame()
 
 while (TRUE) {
   # Construct the query URL with the current offset
@@ -414,15 +425,38 @@ while (TRUE) {
   records <- data$features
   
   # Append the records to the all_data data frame
-  all_data <- bind_rows(all_data, records)
+  pmd_data <- bind_rows(pmd_data, records)
   
   # Update the offset for the next request
   offset <- offset + limit
 }
 
-# Print the first few rows of the collected data
-print(head(all_data))
 
+# Clean up the data
+pmd_data <- pmd_data |> 
+  rename_with(~str_remove(.x, "geometry|properties")) |> 
+  janitor::clean_names() |> 
+  unnest_wider(col = coordinates, names_sep = "_") |> 
+  rename(
+    "latitude" = coordinates_1,
+    "longitude" = coordinates_2
+  )
+
+
+
+# Save the data as a .csv file
+write.csv(
+  pmd_data,
+  file = here(
+    "Hydromet Data",
+    paste0(
+      "SomassGaugeData_WaterOffice_",
+      Sys.Date(),
+      ".csv"
+    )
+  ),
+  row.names = FALSE
+)
 
 
 # Remove all versions except the latest version of the download
@@ -430,8 +464,23 @@ old_versions <- list.files(
   here("Hydromet Data"),
   pattern = "WaterOffice",
   full.names = TRUE
-)
- # NEed to finish this piece
+) |> 
+  as_tibble_col(column_name = "filename") |>
+  mutate(
+    date = str_extract(filename, "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}(?=\\.csv)") |> 
+      as.Date()
+    ) |> 
+  arrange(date) |> 
+  slice(-1) |> # Remove the first (most recent) file
+  pull(filename)
+
+
+# Delete the old files
+file.remove(old_versions)
+
+
+
+# Load Somass gauge data and plot -----------------------------------------
 
 
 # Read the latest data
@@ -440,4 +489,62 @@ somass_data <- list.files(
   pattern = "WaterOffice",
   full.names = TRUE
 ) |> 
-read.csv()
+read.csv() |> 
+  mutate(
+    date = as.Date(date),
+    year = format(date, "%Y") |> as.numeric(),
+    month = format(date, "%m"),
+    doy = format(date, "%j") |> as.numeric()
+  )
+
+
+# Historical average (by day) data for Somass
+somass_hist <- somass_data |> 
+  pivot_longer(
+    cols = c(discharge), # Add additional variables here if desired,
+    names_to = "measure",
+    values_to = "value"
+  ) |> 
+  summarize(
+    .by = c(doy, measure),
+    mean = mean(value,na.rm = TRUE),
+    q5 = quantile(value, 0.05, na.rm = TRUE),
+    q95 = quantile(value, 0.95, na.rm = TRUE),
+    min = min(value, na.rm = TRUE),
+    max = max(value, na.rm = TRUE)
+  ) |> 
+  arrange(measure, doy) |> 
+  mutate(
+    .by = measure,
+    across(
+      mean:last_col(), 
+      list(`7d` = ~rollmean(.x, k=7, fill = NA),
+           `15d` = ~rollmean(.x, k=15, fill = NA),
+           `30d` = ~rollmean(.x, k=30, fill = NA)), 
+      .names = "{.fn}_{.col}"),
+    date = as.Date(doy, origin = paste0(curr_yr-1, "-12-31"))
+  )
+
+
+# See what it looks like
+ggplot(somass_hist, aes(x = date, y = `15d_mean`)) +
+  facet_grid(~measure) +
+  geom_line(colour = "blue") +
+  geom_ribbon(
+    aes(
+      ymin = `15d_q5`,
+      ymax = `15d_q95`
+    ),
+    fill = "blue",
+    alpha = 0.4
+  ) +
+  scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%b",
+    limits = c(
+      as.Date(paste0(curr_yr, "-01-01")),
+      as.Date(paste0(curr_yr, "-12-31"))
+    ),
+    expand = c(0, 0)
+  )
+
