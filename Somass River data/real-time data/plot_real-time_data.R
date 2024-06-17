@@ -55,7 +55,7 @@ local_data <- hs_files |>
   bind_rows() |> 
   clean_names() |> # tidy the column names
   filter(station_cd == "PASR") |> # keep only measurements recorded in the river
-  mutate(across(everything(), parse_guess)) # revert vars by guessing based on values
+  mutate(across(everything(), parse_guess)) # guess var types from values
 
 
 # Trim local data and reformat to match historical data
@@ -103,8 +103,8 @@ wk_clim <- somass_temps |>
   ) |> 
   mutate(
     week_num = as.integer(week),
-    # Fit LOESS smooths to the weekly summary data
-    # (makes the lines smoother when plotting)
+    # Generate LOESS predictions for the weekly summary data
+    # (make smooth lines for plotting)
     across(
       !contains("week"),
       .fns = list(
@@ -124,15 +124,15 @@ wk_clim <- somass_temps |>
 # Plot real-time observations versus climatology data ---------------------
 
 
-# Manipulate the weekly data into a format for the current year
+# Manipulate the weekly data into a format matching the current year
 wk_clim |> 
   mutate(
     doy = as.numeric(str_extract(week, "[[:digit:]]+(?=,)")),
     mid_doy = doy + 4,
     mid_doy = if_else(mid_doy > 365, NA, mid_doy),
-    date = as.Date(mid_doy, origin = paste0(curr_yr - 1, "-12-31")),
-    #date = as.Date(paste(curr_yr, format(date, "%m"), format(date, "%d"), sep = "-"))
+    date = as.Date(mid_doy, origin = paste0(curr_yr - 1, "-12-31"))
   ) |> 
+  # Plot the climatology data
   ggplot(aes(x = date, y = smooth_median)) +
   geom_line(colour = "blue", linewidth = 0.75) +
   geom_ribbon(
