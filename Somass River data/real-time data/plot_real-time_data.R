@@ -2,7 +2,7 @@
 
 
 # Install packages
-pkgs <- c("here", 'tidyverse', "readxl", "janitor")
+pkgs <- c("here", 'tidyverse', "readxl", "janitor", "httr")
 #install.packages(pkgs)
 
 # Load packages
@@ -10,6 +10,7 @@ library(here)
 library(tidyverse); theme_set(theme_bw(base_size = 14))
 library(readxl)
 library(janitor)
+library(httr)
 
 
 # State the current year
@@ -118,7 +119,29 @@ wk_clim <- somass_temps |>
 
 # Load real-time data from ECCC website -----------------------------------
 
+# URL parameters
+station_id = "08HB017"
+end_date <- Sys.Date()
+start_date <- paste0(curr_yr, "-06-01")
+parameter <- 5 # 5 is water temperature; 46 = level, 47 = discharge
 
+
+# url with the real-time data
+url <- paste0(
+  "https://wateroffice.ec.gc.ca/services/real_time_data/csv/inline",
+  "?stations[]=", station_id,
+  "&parameters[]=", parameter,
+  # Start & end dates and times
+  "&start_date=", start_date, "%2000:00:00",
+  "&end_date=", end_date, "%2023:59:59"
+)
+
+
+# Get content
+real_time <- httr::GET(url) |> 
+  content() |> 
+  clean_names() |> 
+  rename_with(~str_remove_all(.x, "_.*"))
 
 
 # Plot real-time observations versus climatology data ---------------------
@@ -133,7 +156,7 @@ wk_clim |>
     date = as.Date(mid_doy, origin = paste0(curr_yr - 1, "-12-31"))
   ) |> 
   # Plot the climatology data
-  ggplot(aes(x = date, y = smooth_median)) +
+  ggplot(aes(x = as.POSIXct(date), y = smooth_median)) +
   geom_line(colour = "blue", linewidth = 0.75) +
   geom_ribbon(
     aes(ymin = smooth_q10, ymax = smooth_q90),
@@ -145,7 +168,13 @@ wk_clim |>
     fill = "blue",
     alpha = 0.25
   ) +
-  scale_x_date(
+  geom_line(
+    data = real_time,
+    aes(x = date, y = value),
+    colour = "red",
+    linewidth = 0.75
+  ) +
+  scale_x_datetime(
     breaks = "1 month",
     date_labels = "%b",
     expand = expansion(mult = 0)
