@@ -53,6 +53,9 @@ air_temps <- expand_grid(
   month = 6:as.numeric(format(Sys.Date(), "%m")),
   day = 1:31
 ) |> 
+  mutate(date = as.Date(paste(year, month, day, sep = "-"))) |>
+  # Constrain dates to the range present the hydrometric data
+  filter(between(date, min(real_time$date), Sys.Date() - 1)) |>
   mutate(
     # Generate list of URLs to scrape data from 
     url = paste0(
@@ -80,7 +83,7 @@ air_temps <- expand_grid(
   clean_names() |> 
   # Create a date variable that includes hourly data
   mutate(
-    date = paste0(year, "-", month, "-", day, " ", timelst) |> 
+    dtt = paste0(year, "-", month, "-", day, " ", timelst) |> 
       as.POSIXct(format = "%Y-%m-%d %H:%M")
   )
 
