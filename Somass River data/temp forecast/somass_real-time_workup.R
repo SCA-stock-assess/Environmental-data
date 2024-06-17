@@ -55,7 +55,11 @@ air_temps <- expand_grid(
 ) |> 
   mutate(date = as.Date(paste(year, month, day, sep = "-"))) |>
   # Constrain dates to the range present the hydrometric data
+<<<<<<< HEAD
   filter(between(date, min(real_time$date) - 24*60*60, Sys.Date())) |>
+=======
+  filter(between(date, min(real_time$date), Sys.Date() - 1)) |>
+>>>>>>> 9a93de1d5aa60c530864cd26f408c873ca9d9470
   mutate(
     # Generate list of URLs to scrape data from 
     url = paste0(
