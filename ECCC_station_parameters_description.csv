@@ -1,0 +1,44 @@
+"parameterid","code","units","units","name_en","name_fr","description_en","description_fr","accesstype"
+15,HA,m,m,Distance from a known elevation,Distance d'une altitude connue ,"Distance, from a known elevation","Distance, à partir d'une altitude connue ",0
+3,HGD,m,m,Water level (provisional daily mean),Niveau (moyenne journalière provisoire),Provisional Daily Water Level ,niveau d'eau quotidien provisoire,0
+6,QRD,m³/s,m³/s,Discharge (provisional daily mean),Débit (moyenne journalière provisoire),Provisional Daily Water Level,Débit d'eau provisoire quotidien,0
+7,QR2,m³/s,m³/s,Discharge (secondary sensor derived),Debit (capteur secondaire dérivée),"Discharge, derived from secondary water level","Debit, dérivé du niveau d'eau secondaire",0
+11,HG22,m,m,Water level (secondary sensor),Niveau d'eau (capteur secondaire),"Height, stage, additional secondary water level reading at the specified station","Hauteur, niveau, lecture secondaire additionnelle du niveau d'eau à la station spécifiée",0
+13,HG33,m,m,Water level (tertiary sensor) ,Niveau d'eau (capteur tertiaire),"Height, stage, additional tertiary water level reading at the specified station","Hauteur, niveau, lecture tertiaire additionnelle du niveau d'eau à la station spécifiée",0
+39,HGH,m,m,Water level (hourly mean),Niveau (moyenne horaire),Provisional hourly water level,Niveau d'eau horaire provisoire,0
+2,VB,V,V,Battery voltage,Tension de batterie,Battery voltage,Tension de batterie,2
+4,YI,°C,°C,Internal equipment temperature,Température interne de l'équipement,Internal equipment temperature,Température interne de l'équipement,2
+5,TW,°C,°C,Water temperature,Température de l'eau,"Temperature, temperature of water at a specified depth","Température, température de l'eau à une profondeur spécifiée",0
+8,QRS,m³/s,m³/s,Discharge (sensor),Debit (capteur),Discharge measured by sensor,Débit mesuré par capteur,0
+9,WV,m/s,m/s,Water velocity,Vitesse du courant,"Water, velocity - velocity of particles of water in a stream","Eau, vitesse du courant - vitesse des particules d'eau dans un cours d'eau",0
+12,YP,psi,psi,Tank pressure,Pression du réservoir,Tank pressure,Pression du réservoir,2
+14,HL,m,m,"Elevation, natural lake","Élévation, lac naturel","Elevation, natural lake","Élévation, lac naturel",0
+16,HG2,m,m,"Water level (secondary sensor, telemetry)","Niveau d'eau (capteur secondaire, telemetrie)","Height, stage, additional secondary water level reading at the specified station, telemetry signal","Hauteur, niveau, lecture secondaire additionnelle du niveau d'eau à la station spécifiée, signal de telemetrie",0
+17,PA,kPa,kPa,Atmospheric pressure,Pression atmosphérique,"Pressure, atmospheric","Pression, atmosphérique",0
+18,PC,mm,mm,Accumulated precipitation,Précipitations accumulées,"Precipitation, accumulator - summation of precipitation collected beginning at a specified date","Précipitations, accumulateur - somme des précipitations recueillies depuis une date spécifiée",0
+19,PP,mm,mm,Incremental precipitation,Précipitations incrémentielles,"Precipitation, actual increment - discrete increase in precipitation amount over a specified duration (includes liquid amount of new snowfall)","Précipitations, incrément réel - augmentation discrète des précipitations pendant une durée spécifiée (inclus l'équivalent liquide de nouvelle chute de neige)",0
+20,WB,RFU,RFU,Blue-green algae,Algues bleu-vert,"Water, blue-green algae","Eau, algues bleu-vert",0
+21,WC,S,S,Conductance,Conductivité,"Water, conductance","Eau, conductivité",0
+22,WO,mg/l,mg/l,Dissolved oxygen,Oxygène dissous,"Water, dissolved oxygen - amount of oxygen dissolved in water","Eau, oxygène dissous - la quantité d'oxygène dissous dans l'eau",0
+23,WX,%,%,Oxygen saturation,Saturation en oxygène,"Water, dissolved oxygen","Eau, oxygène dissous",0
+24,WP,,,pH,pH,"Water, pH","Eau, pH",0
+25,WT,NTU,NTU,Turbidity,Turbidité,"Water, turbidity","Eau, turbidité",2
+26,WLA,mg/l,mg/l,Total dissolved solids,Matières dissoutes totales,"Water, total dissolved solids","Eau, matières dissoutes totales",0
+28,XR,%,%,Relative humidity,Humidité relative,"Humidity, relative - ratio of the actual vapor pressure of the air to the saturation vapor pressure expressed in percent","Humidité, relative - rapport de la quantité de vapeur d'eau dans l'air à la quantité de vapeau d'eau en saturation exprimé en pourcentage",0
+34,UD,deg,deg,Wind direction,Direction du vent,"Wind, direction - direction most frequently observed during a given period","Vent, direction - direction la plus fréquemment observée pendant une période donnée",0
+35,US,m/s,m/s,Wind speed,Vitesse du vent,"Wind, speed - velocity of air in motion relative to the surface of the earth","Vent, vitesse - vélocité de l'air en mouvement relativement à la surface de la terre",0
+36,YE,m,m,Cell end,Fin de cellule,"Distance, cell end","Distance, fin de cellule",2
+37,WVX,m/s,m/s,"Water velocity, x","Vitesse du courant, x","Water, velocity - velocity of particles of water in the x vector component","Eau, vitesse du courant - vitesse des particules d'eau dans la composante x du vecteur",2
+38,WVY,m/s,m/s,"Water velocity, y","Vitesse du courant, y","Water, velocity of particles of water in the y vector component","Eau, vitesse du courant - vitesse des particules d'eau dans la composante y du vecteur",2
+41,TW2,°C,°C,Secondary water temperature,Température de l'eau secondaire,"Temperature, additional secondary water temperature reading at the specified station","Température, lecture secondaire additionnelle de la température de l'eau à la station spécifiée",0
+42,HR,m,m,"Elevation, lake or reservoir rule curve","Élévation, courbe des niveaux optimaux de lac ou réservoir","Elevation, lake or reservoir rule curve","Élévation, courbe des niveaux optimaux de lac ou réservoir",0
+43,WNB,mg/l,mg/l,Dissolved nitrate,Nitrates dissous,"Water, dissolved nitrate (NO3-)","Eau, nitrates dissous (NO3-)",1
+46,HG,m,m,Water level (primary sensor),Niveau d'eau (capteur primaire),"Height, stage, elevation of the water surface at a specified station above some arbitrary zero datum","Hauteur, niveau, élévation de la surface de l'eau à une station spécifiée au-dessus du zéro d'un système de référence arbitraire",0
+47,QR,m³/s,m³/s,Discharge (primary sensor derived),Debit (capteur primaire dérivée),Discharge - flow measured at points along a stream,Débit - écoulement mesuré à des points le long d'un cours d'eau,0
+49,WY,ug/L,ug/L,Chlorophyll,Chlorophylle,"Water, chlorophyll","Eau, chlorophylle",1
+50,SD,cm,cm,Snow depth,Épaisseur de la neige,"Snow, depth - actual depth of snow on the ground at any instant during a storm, or after any single snowstorm or series of storms","Neige, épaisseur - épaisseur réelle de neige au sol à tout moment pendant une tempête, ou suivant une tempête unique ou une série de tempêtes",0
+51,SF,cm,cm,"Snow depth, new snowfall","Épaisseur de la neige, nouvelle chute","Snow, depth, new snowfall - incremental depth of snow on the ground at any instant since last snow depth observation","Neige, épaisseur, nouvelle chute - épaisseur incrémentielle de la neige sur le sol à tout instant depuis la dernière observation de l'épaisseur de la neige",1
+52,HG3,m,m,"Water level (tertiary sensor, telemetry) ","Niveau d'eau (capteur tertiaire, télémétrie)","Height, stage, additional tertiary water level reading at the specified station, telemetry signal","Hauteur, niveau, lecture tertiaire additionnelle du niveau d'eau à la station spécifiée, signal de télémétrie",0
+10,QR3,m³/s,m³/s,Discharge (tertiary sensor derived),Debit (capteur tertiaire dérivée),"Discharge, derived from tertiary water level","Debit, dérivé du niveau d'eau tertiaire",0
+40,QRH,m³/s,m³/s,Discharge (hourly mean),Débit (moyenne horaire),Provisional Hourly Discharge,Débit d'eau horaire provisoire,0
+1,TA,°C,°C,Air temperature,Température de l'air,"Temperature, air, wet bulb","Température, air, bulbe humide",0
