@@ -1,7 +1,9 @@
 # Packages & functions ----------------------------------------------------
 
 pkgs <- c(
-  "tidyverse","readxl","purrr","zoo", "here", "magrittr","janitor", "mgcv")
+  "tidyverse","readxl","purrr","zoo", "here", "magrittr","janitor", "mgcv",
+  "rvest", "askpass"
+  )
 #install.packages(pkgs)
 
 library(here)
@@ -12,10 +14,69 @@ library(janitor)
 library(zoo)
 library(magrittr)
 library(mgcv)
+library(rvest)
+library(askpass)
 
 
 # Current year
 curr_yr <- 2024
+
+
+
+# Load data from the online database --------------------------------------
+
+
+# Log in to the database
+my_session <- session("https://data.romcomm.com/") # start a session
+
+log_in_form <- html_form(my_session)[[1]] # extract the log in form data
+
+
+session_submit( # Submit a new session specifying the username and password
+  my_session, 
+  html_form_set(
+    log_in_form,
+    `ctl00$cphBody$txtUsername` = "dfoweather",
+    `ctl00$cphBody$txtPass` = askpass() # Password input via dialogue box
+  )
+)
+
+
+# List of parameters to pass to url
+params <- list(
+  # lid and gid, combined, lead to Sproat and Stamp hydromets, respectively
+  lid = c("2022628796262", "2018510632229"),
+  gid = c("0", "7"),
+  # Use 365 days for time range
+  days = rep(8760, 2) # see html_elements(url, "option") for available submissions
+)
+
+
+# Declare function to extract data from a single url 
+get_data <- function(lid, gid, days) {
+  path <- paste0(
+    "https://data.romcomm.com/Detail.aspx?lid=",
+    lid,
+    "&gid=",
+    gid,
+    "&days=",
+    days
+  )
+  
+  url <- session_jump_to(my_session, path)
+  
+  table <- html_elements(url, "table") |> 
+    html_table() |> 
+    pluck(3)
+  
+  return(table)
+}
+
+
+# Scrape the data
+latest_year_data <- pmap(params, get_data) |> 
+  set_names(c("Sproat", "Stamp")) |> 
+  list_rbind(names_to = "station")
 
 
 # Hydromet time series ----------------------------------------------------
