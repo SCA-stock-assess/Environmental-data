@@ -153,25 +153,16 @@ if(FALSE) {hist |>
 
 
 # The current year time series
-curr_file <- here("Hydromet Data", "Hydromets_current.xlsx")
-curr <- curr_file |> 
-  excel_sheets() |> 
-  purrr::set_names() |> 
-  map(read_xlsx, path = curr_file) |> 
-  map(~mutate(.x, across(everything(), as.character))) |> 
-  list_rbind(names_to = "station") |> 
+curr <- latest_year_data |> 
   clean_names() |> 
-  rename(
-    wtemp = water_temp_c, 
-    atemp = air_temp_c,
-    gauge = staff_gauge_m_h20, 
-    depth = sensor_depth_m_h20
-  ) %>% 
+  rename("wtemp" = water_temperature_c) |> 
   mutate(
-    # remove flags on estimated values
-    across(everything(), ~str_replace(.,"[:punct:]{2}Estimated","") %>% str_trim()),
-    across(everything(), parse_guess),
-    station_time = as.POSIXct(time),
+    depth = if_else(
+      station == "Sproat",
+      sensor_depthm,
+      levelm - surface_levelm
+    ),
+    station_time = as.POSIXct(received, format = "%d-%b-%y %I:%M %p"),
     year = format(station_time, "%Y") |> as.numeric(),
     month = format(station_time, "%m") |> as.numeric(),
     day = format(station_time, "%j") |> as.numeric(),
@@ -183,18 +174,21 @@ curr <- curr_file |>
       month %in% 5:10 & wtemp < 2 ~ NA_real_,
       TRUE ~ wtemp
     ),
-    atemp = if_else(!between(atemp, -30, 50), NA_real_, atemp),
     depth = if_else(!between(depth, 0.05, 5), NA_real_, depth),
-    gauge = if_else(!between(gauge, 0, 15), NA_real_, gauge),
-  ) %>% 
+  ) |> 
   # Remove most recent day's data since averages 
   # will be based on cooler overnight temps only
-  filter(date < max(date, na.rm = T)) |> 
+  filter(
+    date < max(date, na.rm = T),
+    # Only keep the 2024 data
+    year == max(year, na.rm = T)
+  ) |> 
   pivot_longer(
-    c(atemp, wtemp, gauge, depth),
+    c(wtemp, depth),
     names_to = "var"
   ) |> 
-  distinct(station_time, station, var, .keep_all = TRUE) # Drop any duplicated rows
+  select(station, station_time:last_col())
+
 
 
 # function to summarize by date
@@ -358,7 +352,8 @@ ggsave(
 
 
 # Weekly average temperatures
-curr %>% 
+curr |>  
+  distinct(station, station_time, var, .keep_all = TRUE) |> 
   pivot_wider(
     names_from = var,
     values_from = value
