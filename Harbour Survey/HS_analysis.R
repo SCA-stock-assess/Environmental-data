@@ -178,7 +178,7 @@ hs <- with(
 
 # set date range for plots.
 max_jul <- max(hs$julian) 
-min_jul <- max_jul - 60
+min_jul <- 150 #max_jul - 60
 
 
 # Define colour palette for DO (requires max DO value from hs)
