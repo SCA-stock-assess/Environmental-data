@@ -243,6 +243,9 @@ hist_doy <- hist_sum |>
     min = min(min),
     mean = mean(mean)
   ) |> 
+  # mutate(
+  #   m50_smooth = stats::predict(gam(mean ~ s(doy, k = 1), family = gaussian()))
+  # ) |> 
   ungroup() |> 
   drop_na(doy)
 
