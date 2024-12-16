@@ -21,6 +21,7 @@ curr_yr <- 2024
 
 # Load and manipulate data ---------------------------------------------------
 
+
 # Raw data file names and cell ranges
 filenames <- list.files(
   here(
@@ -83,14 +84,6 @@ hs0 <- filenames |>
 max_depths <- hs0 |> 
   group_by(site) |> 
   summarize(max_depth = max(depth))
-
-# 3 August rig
-# Sneaks in the Polly Pt. measurements from 20m depth for the missing 20-m 5km center measurements
-# aug3 <- hs0 |> 
-#   filter(julian == 215,
-#          site == "Polly's Pt.",
-#          depth == 20) |> 
-#   mutate(site = "5km Center")
 
 
 # What values correspond to the mean and +/- 1 SD of do & temp?
@@ -391,6 +384,7 @@ ggsave(
   units = "in"
 )
 
+
 # Clean up the workspace
 rm(idx, idx_c, idx_p, idxcat_p)
 gc()
@@ -559,7 +553,16 @@ list(xs_plot_do, xs_plot_idx) |>
 
 
 # Apply function to all dates in the data and combine into single df
-test <- unique(hs$julian) |> 
+anim_data <- hs |> 
+  filter(
+    between(
+      date, 
+      as.Date(paste0(curr_yr, "-03-31")),
+      as.Date(paste0(curr_yr, "-10-31"))
+    )
+  ) |> 
+  distinct(julian) |> 
+  pull() |> 
   as.list() |> 
   purrr::set_names() |> 
   map_dfr(
@@ -579,19 +582,34 @@ test <- unique(hs$julian) |>
 
 
 # Save the plot as an animation with frames for each date
-anim <- xs_p_fn(test, 
-                aes(group = date, 
-                    frame = date)) +
+anim <- xs_p_fn(
+  anim_data, 
+  aes(group = date, frame = date)
+) +
+  scale_fill_gradientn(
+    colours = idx_pal,
+    name = "Temp-oxy\nindex", 
+    limits = c(0,5)
+  ) +
   transition_time(date) +
   labs(title = "{frame_time}")
 
+
 # Customize the animation
-animate(anim, 
-        width = 800, height = 400,
-        fps = 20, 
-        duration = 45,
-        renderer = gifski_renderer())
+animate(
+  anim, 
+  width = 800, height = 400,
+  fps = 20, 
+  duration = 45,
+  renderer = gifski_renderer()
+)
 
 # Save
-anim_save("testing1.gif")
+anim_save(
+  here(
+    "Harbour Survey", 
+    "plots", 
+    "inlet_cross-section_animation.gif"
+    )
+  )
 
