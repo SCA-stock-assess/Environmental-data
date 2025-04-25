@@ -510,9 +510,9 @@ complete_survey <- hs |>
 
 # Plot for Dissolved Oxygen
 (xs_plot_do <- xs_p_fn(
-  intp_dist_fn("do_mgl", max_jul),
+  intp_dist_fn("do_mgl", 208),
   date_tag = as.Date(
-    max_jul, 
+    208, 
     format = "%j", 
     origin = as.Date(paste0(curr_yr-1, "-12-31"))
   ) |> 
@@ -603,6 +603,7 @@ animate(
   duration = 45,
   renderer = gifski_renderer()
 )
+
 
 # Save
 anim_save(
