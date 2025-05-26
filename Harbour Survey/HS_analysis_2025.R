@@ -17,7 +17,7 @@ library(reshape2)
 idx_pal <- c("#252525",brewer.pal(n = 11, name = "RdYlGn")[-c(6,11)])
 
 # Analysis year
-curr_yr <- 2024
+curr_yr <- 2025
 
 # Load and manipulate data ---------------------------------------------------
 
@@ -39,10 +39,11 @@ site_order <- c("5km Center", "Polly's Pt.", "Hohm Isle", "Estuary")
 # Load the raw data
 hs0 <- filenames |> 
   map_dfr(
-    ~ read_xlsx(.x, sheet = "DataAssembly") |> 
-      select(-`Meter Unit`)
+    ~ read_xlsx(.x, sheet = "DataAssembly") |> #read the DataAssembly tab
+      mutate(Time = as.character(Time)) |> #make time a character to standardize it 
+      select(-`Meter Unit`) #remove the Meter Unit column
   ) |>  
-  select(-pH) |> 
+  select(-pH) |>   #remove the pH column
   mutate(
     site = case_when(
       StationCd == "PASR" ~ "River",
@@ -52,7 +53,7 @@ hs0 <- filenames |>
       StationCd == "PA05" ~ "5km Center"
     )
   ) |> 
-  filter(site != "River")  |>  
+  filter(site != "River")  |>  #filter out anything that isn't in the river
   mutate(
     date = as.Date(SampleTime), 
     julian = date |> format("%j") |> as.integer(),
@@ -170,8 +171,13 @@ hs <- with(
 
 
 # set date range for plots.
-max_jul <- max(hs$julian) 
-min_jul <- 150 #max_jul - 60
+  max_jul <- max(hs$julian)
+  min_jul <- 150 #max_jul - 60
+
+    ### CHANGE THIS BASED ON WHAT PART YOU ARE INTERESTED IN ###
+    #Set the plot for May 1 (julian day = 121) to June 10 (julian day = 161):
+    min_jul <- 1
+
 
 
 # Define colour palette for DO (requires max DO value from hs)
@@ -252,6 +258,7 @@ ts_p_fn <- function(df, hs_var, min_julian, max_julian) {
     labs(y = "Depth (m)", x = NULL) +
     scale_y_reverse(expand = c(0,0), labels = as.integer) +
     scale_x_date(
+      limits = as.Date(c("2025-01-01", max_julian)), #add limits so it only stays within 2025
       expand = c(0,0), 
       breaks = "2 weeks", 
       date_labels = "%d %b"
@@ -270,6 +277,9 @@ ts_p_fn <- function(df, hs_var, min_julian, max_julian) {
 # Render plots for each variable
 ts_p_fn(temps, "temp", min_jul, max_jul) # Temperature
 
+
+
+### FIGURE  4 OF IN-SEASON BULLETIN:
 (do_ts_plot <- ts_p_fn(do, "do_mgl", min_jul, max_jul) + #DO (plus appropriate legend tweaks)
     scale_fill_gradientn(
       colours = do_pal$colour, 
@@ -488,6 +498,17 @@ complete_survey <- hs |>
   max()
 
 
+
+### Turn off debugging errors:
+# Turn off debugging for these functions if enabled
+undebug(xs_p_fn)
+undebug(intp_dist_fn)
+# Remove any error option that triggers browser on error
+options(error = NULL)
+
+
+
+
 # Plot for temp-oxy index
 (xs_plot_idx <- xs_p_fn(
   intp_dist_fn("idx_cat", max_jul) %>% 
@@ -508,11 +529,29 @@ complete_survey <- hs |>
 )
 
 
+
+
+#################### Mikayla Debugging ######################
+surf_data <- hs %>%
+  filter(date >= as.Date("2025-01-01")) %>%  # example filter; adjust as needed
+  select(date, depth, do_mgl) %>%              # select exactly 3 columns for x, y, z
+  drop_na()                                   # remove rows with missing values
+
+
+# Convert date to numeric if mba.surf requires numeric coordinates
+surf_data <- surf_data %>%
+  mutate(date_num = as.numeric(date)) %>%
+  select(date_num, depth, do_mgl)
+
+#############################################################
+
+julian_sample_date <- 1
+
 # Plot for Dissolved Oxygen
 (xs_plot_do <- xs_p_fn(
-  intp_dist_fn("do_mgl", 208),
+  intp_dist_fn("do_mgl", julian_sample_date), #looks for info around julian date 208
   date_tag = as.Date(
-    208, 
+    julian_sample_date, 
     format = "%j", 
     origin = as.Date(paste0(curr_yr-1, "-12-31"))
   ) |> 
@@ -526,6 +565,9 @@ complete_survey <- hs |>
       values = scales::rescale(do_pal$value, to = c(0, 1)),
     )
 )
+
+
+
 
 
 # Save plots
