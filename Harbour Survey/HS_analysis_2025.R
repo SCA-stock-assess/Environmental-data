@@ -531,25 +531,17 @@ options(error = NULL)
 
 
 
-#################### Mikayla Debugging ######################
-surf_data <- hs %>%
-  filter(date >= as.Date("2025-01-01")) %>%  # example filter; adjust as needed
-  select(date, depth, do_mgl) %>%              # select exactly 3 columns for x, y, z
-  drop_na()                                   # remove rows with missing values
+
+max_jul <- max(hs$julian)
+min_jul <- 150 #max_jul - 60
+
+julian_sample_date <- max_jul #original date in 2024: 208
 
 
-# Convert date to numeric if mba.surf requires numeric coordinates
-surf_data <- surf_data %>%
-  mutate(date_num = as.numeric(date)) %>%
-  select(date_num, depth, do_mgl)
-
-#############################################################
-
-julian_sample_date <- 1
-
+### FIGURE 5 IN IN-SEASON BULLETIN:
 # Plot for Dissolved Oxygen
 (xs_plot_do <- xs_p_fn(
-  intp_dist_fn("do_mgl", julian_sample_date), #looks for info around julian date 208
+  intp_dist_fn("do_mgl", julian_sample_date), #looks for info around a specific julian date
   date_tag = as.Date(
     julian_sample_date, 
     format = "%j", 
