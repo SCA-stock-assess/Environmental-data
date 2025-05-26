@@ -4,7 +4,7 @@ pkgs <- c(
   "tidyverse","readxl","purrr","zoo", "here", "magrittr","janitor", "mgcv",
   "rvest", "askpass"
   )
-#install.packages(pkgs)
+# install.packages(pkgs)
 
 library(here)
 library(tidyverse); theme_set(theme_bw(base_size = 14))
@@ -19,7 +19,7 @@ library(askpass)
 
 
 # Current year
-curr_yr <- 2024
+curr_yr <- 2025
 
 
 
@@ -250,6 +250,9 @@ hist_doy <- hist_sum |>
   drop_na(doy)
 
 
+
+
+### FIGURE 3 IN THE IN-SEASON SOCKEYE BULLETIN:
 # Average graph
 legend <- c(paste0("Historical average (2013-", curr_yr - 1, ")"), as.character(curr_yr))
 
