@@ -280,15 +280,25 @@ ts_p_fn(temps, "temp", min_jul, max_jul) # Temperature
 
 
 ### FIGURE  4 OF IN-SEASON BULLETIN:
-(do_ts_plot <- ts_p_fn(do, "do_mgl", min_jul, max_jul) + #DO (plus appropriate legend tweaks)
-    scale_fill_gradientn(
-      colours = do_pal$colour, 
-      name = "DO (mg/L)",
-      labels = as.integer, 
-      breaks = c(0, 4, 8, 12),
-      values = scales::rescale(do_pal$value, to = c(0, 1)),
-    )
-)
+# (do_ts_plot <- ts_p_fn(do, "do_mgl", min_jul, max_jul) + #DO (plus appropriate legend tweaks)
+#     scale_fill_gradientn(
+#       colours = do_pal$colour, 
+#       name = "DO (mg/L)",
+#       labels = as.integer, 
+#       breaks = c(0, 4, 8, 12),
+#       values = scales::rescale(do_pal$value, to = c(0, 1)),
+#     )
+# )
+
+(do_ts_plot <- ts_p_fn(do, "do_mgl", min_jul, max_jul) +
+  scale_fill_gradientn(
+    colours = do_pal$colour, 
+    name = "DO (mg/L)",
+    labels = as.integer, 
+    breaks = c(0, 4, 8, 12),
+    values = scales::rescale(do_pal$value, to = c(0, 1))
+  ) +
+  scale_x_date(limits = as.Date(c("2025-04-01", NA)))) #Only look at April 1 onward (or May if you would prefer)
 
 
 # Custom palette for salinity, per Howard's request
@@ -312,17 +322,29 @@ sal_p
 
 # Save the DO plot
 ggsave(
-  filename = paste0(
-    here("Harbour Survey", "plots"),
-    "/R-PLOT_time series DO",
-    Sys.Date(),
-    ".png"
+  filename = paste(
+    here("Harbour Survey", "plots", paste0("R-PLOT_time series DO ", Sys.Date(), ".png")),
+    sep = ""
   ),
   plot = do_ts_plot,
   height = 7,
   width = 9,
   units = "in"
 )
+
+
+#Save the salinity plot:
+ggsave(
+  filename = paste(
+    here("Harbour Survey", "plots", paste0("R-PLOT_time series salinity ", Sys.Date(), ".png")),
+    sep = ""
+  ),
+  plot = sal_p,
+  height = 7,
+  width = 9,
+  units = "in"
+)
+
 
 
 # Clean up the workspace
@@ -347,7 +369,9 @@ idx_p <- ts_p_fn(idx, "hold_idx", min_jul,max_jul) +
     name = "Index",
     labels = as.integer,
     limits = c(max(idx$value), min(idx$value))
-  )
+  # )
+)+
+  scale_x_date(limits = as.Date(c("2025-04-01", NA))) #only look at data from April 1 2025
 
 idx_p[["layers"]][[3]][["aes_params"]][["binwidth"]] <- 1 # Change contour spacing
 
@@ -373,7 +397,10 @@ idxcat_p <- ts_p_fn(idx_c, "idx_cat", min_jul, max_jul) +
     colours = idx_pal,
     name = "Temp-oxy\nindex",
     limits = c(0,5)
-  )
+  # )
+)+
+  scale_x_date(limits = as.Date(c("2025-04-01", NA))) #only look at data from April 1 2025
+
 
 idxcat_p[["layers"]][[3]][["stat_params"]][["binwidth"]] <- 1 # Change contour spacing
 
@@ -381,19 +408,29 @@ idxcat_p
 
 
 # Save time series plot
+# ggsave(
+#   filename = paste0(
+#     here("Harbour Survey", "plots"),
+#     "/R-PLOT_time series temp-oxy index",
+#     Sys.Date(),
+#     ".png"
+#   ),
+#   plot = idxcat_p,
+#   height = 7,
+#   width = 9,
+#   units = "in"
+# )
+
 ggsave(
-  filename = paste0(
-    here("Harbour Survey", "plots"),
-    "/R-PLOT_time series temp-oxy index",
-    Sys.Date(),
-    ".png"
+  filename = paste(
+    here("Harbour Survey", "plots", paste0(  "/R-PLOT_time series temp-oxy index", Sys.Date(), ".png")),
+    sep = ""
   ),
   plot = idxcat_p,
   height = 7,
   width = 9,
   units = "in"
 )
-
 
 # Clean up the workspace
 rm(idx, idx_c, idx_p, idxcat_p)
@@ -561,25 +598,41 @@ julian_sample_date <- max_jul #original date in 2024: 208
 
 
 
-
 # Save plots
+# list(xs_plot_do, xs_plot_idx) |> 
+#   set_names(c("DO", "Index")) |> 
+#   iwalk(
+#     ~ggsave(
+#       plot = .x, 
+#       filename = paste0(
+#         here("Harbour Survey", "plots"),
+#         "/R-PLOT_Inlet cross section",
+#         .y,
+#         Sys.Date(),
+#         ".png"
+#       ),
+#       height = 3,
+#       width = 8,
+#       units = "in"
+#     )
+#   )
+
 list(xs_plot_do, xs_plot_idx) |> 
   set_names(c("DO", "Index")) |> 
   iwalk(
     ~ggsave(
-      plot = .x, 
-      filename = paste0(
-        here("Harbour Survey", "plots"),
-        "/R-PLOT_Inlet cross section",
-        .y,
-        Sys.Date(),
-        ".png"
+      filename = paste(
+        here("Harbour Survey", "plots", paste0("/R-PLOT_Inlet cross section", Sys.Date(), ".png")),
+        sep = ""
       ),
+      plot = xs_plot_do,
       height = 3,
       width = 8,
       units = "in"
     )
   )
+
+
 
 
 # Animated time series of Inlet cross-section -----------------------------
