@@ -331,8 +331,8 @@ legend <- c(paste0("Historical average (2013-", curr_yr - 1, ")"), as.character(
   guides(fill = "none") +
   coord_cartesian(
     xlim = c(
-      as.Date(paste0(curr_yr, "-05-01")), 
-      as.Date(paste0(curr_yr, "-10-15"))
+      as.Date(paste0(curr_yr, "-05-01")), #start plot in April (04) or May (05)
+      as.Date(paste0(curr_yr, "-10-15")) #end in October (10)
     )
   ) +
   theme(
@@ -350,12 +350,18 @@ legend <- c(paste0("Historical average (2013-", curr_yr - 1, ")"), as.character(
 # Save the plot
 ggsave(
   plot = comp_plot,
-  here("Hydromet Data", "plots", "R-PLOT_Stamp-Sproat_Hydromets.png"),
+  filename = here("Hydromet Data", "plots", paste0("R-PLOT_Stamp-Sproat_Hydromets_", Sys.Date(), ".png")), #added the date to the name
   width = 6,
   height = 4.5,
   units = "in"
 )
 
+
+
+
+
+#### THIS WEEKLY AVERAGE TEMPERATURES IS PART OF THE ENVIRONMENTAL CONDITIONS BLURB
+#### IN THE IN-SEASON BULLETIN:
 
 # Weekly average temperatures
 curr |>  
@@ -365,6 +371,27 @@ curr |>
     values_from = value
   ) |> 
   filter(!(day < max(day)-7)) %>% # Keep data only from most recent 7 days
+  group_by(station) %T>%
+  # options arguments below disable warnings associated with averaging date-class variables
+  {options(warn = -1)} %>% 
+  summarize(
+    across(c(wtemp,date), 
+           .fns = list(mean = mean, min = min, max = max), 
+           .names = "{.fn}_{.col}",
+           na.rm = TRUE)
+  ) %T>%
+  {options(warn = 0)} %>% 
+  select(-mean_date)
+
+
+#3-day average escapement:(input into Soxsum in rows 433 & 436 about SPR and STP 3 day average water temperature)
+curr |>  
+  distinct(station, station_time, var, .keep_all = TRUE) |> 
+  pivot_wider(
+    names_from = var,
+    values_from = value
+  ) |> 
+  filter(!(day < max(day)-3)) %>% # Keep data only from most recent 7 days
   group_by(station) %T>%
   # options arguments below disable warnings associated with averaging date-class variables
   {options(warn = -1)} %>% 
