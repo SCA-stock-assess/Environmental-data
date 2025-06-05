@@ -276,6 +276,45 @@ ts_p_fn <- function(df, hs_var, min_julian, max_julian) {
 
 # Render plots for each variable
 ts_p_fn(temps, "temp", min_jul, max_jul) # Temperature
+ts_p_fn(do, "do", min_jul, max_jul) #dissolved oxygen - note that the figure says "temperature" but it is DO
+
+
+
+
+#SUMMARIZE TEMP AND DO BASED ON HALOCLINE LEVELS
+#Use this for in-season bulletin
+
+# Step 1: Set the values
+#getting averages below the halocline (where salinity experiences a decline)
+today <- Sys.Date() # get the date of today
+start_date <- today - 7 # make the start date 7 days before today
+end_date <- today # make today the end date
+
+halocline <- 5 #this is the halocline based on the salinity plots (it is an approximation)
+
+# Step 2: Make a function that will generate a table for us to print off
+summarize_weekly <- function(df, name) {
+  df %>%
+    filter(format(date, "%Y") == format(today, "%Y")) %>%
+    filter(date >= start_date & date <= end_date) %>%
+    filter(depth > halocline) %>% #
+    summarise(
+      dataset = name,
+      start_date = min(date),
+      end_date = max(date),
+      avg_value = mean(value, na.rm = TRUE)
+    )
+}
+
+#Step 3: Get the table:
+summary_do <- summarize_weekly(do, "DO")
+summary_temp <- summarize_weekly(temps, "Temp")
+summary_table <- bind_rows(summary_do, summary_temp)
+
+# Step 4: Print the table
+summary_table
+
+
 
 
 
