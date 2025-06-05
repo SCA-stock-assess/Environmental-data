@@ -297,7 +297,8 @@ summarize_weekly <- function(df, name) {
   df %>%
     filter(format(date, "%Y") == format(today, "%Y")) %>%
     filter(date >= start_date & date <= end_date) %>%
-    filter(depth > halocline) %>% #
+    filter(depth > halocline) %>% 
+    group_by(site) %>%
     summarise(
       dataset = name,
       start_date = min(date),
