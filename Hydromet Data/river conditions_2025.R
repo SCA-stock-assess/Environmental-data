@@ -113,7 +113,7 @@ hist <- read_xlsx(here("Hydromet Data", "Hydromets_historic.xlsx"), na = c("","-
 
 # Some histograms to check for any remaining extreme values.
 # Look at all measures at once
-if(FALSE){ # Change to TRUE to run, otherwise this step is skipped over
+if(TRUE){ # Change to TRUE to run, otherwise this step is skipped over
   hist %>% 
     ggplot(aes(value)) +
     facet_wrap(~var, scales = "free") +
@@ -331,7 +331,7 @@ legend <- c(paste0("Historical average (2013-", curr_yr - 1, ")"), as.character(
   guides(fill = "none") +
   coord_cartesian(
     xlim = c(
-      as.Date(paste0(curr_yr, "-05-01")), #start plot in April (04) or May (05)
+      as.Date(paste0(curr_yr, "-04-01")), #start plot in April (04) or May (05)
       as.Date(paste0(curr_yr, "-10-15")) #end in October (10)
     )
   ) +
