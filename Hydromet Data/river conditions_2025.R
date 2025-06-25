@@ -75,7 +75,7 @@ get_data <- function(lid, gid, days) {
 
 # Scrape the data
 latest_year_data <- pmap(params, get_data) |> 
-  set_names(c("Sproat", "Stamp")) |> 
+  set_names(c("Sproat", "Stamp")) |>
   list_rbind(names_to = "station")
 
 
