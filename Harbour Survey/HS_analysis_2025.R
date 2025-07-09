@@ -303,7 +303,10 @@ summarize_weekly <- function(df, name) {
       dataset = name,
       start_date = min(date),
       end_date = max(date),
-      avg_value = mean(value, na.rm = TRUE)
+      avg_value = mean(value, na.rm = TRUE),
+      min_value = min(value, na.rm = TRUE),
+      max_value = max(value, na.rm = TRUE)
+      
     )
 }
 
