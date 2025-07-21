@@ -287,6 +287,7 @@ ts_p_fn(do, "do", min_jul, max_jul) #dissolved oxygen - note that the figure say
 # Step 1: Set the values
 #getting averages below the halocline (where salinity experiences a decline)
 today <- Sys.Date() # get the date of today
+today <- max(hs0$date) #use the date of the last harbour survey
 start_date <- today - 7 # make the start date 7 days before today
 end_date <- today # make today the end date
 
