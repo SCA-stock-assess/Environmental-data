@@ -291,7 +291,7 @@ today <- max(hs0$date) #use the date of the last harbour survey
 start_date <- today - 7 # make the start date 7 days before today
 end_date <- today # make today the end date
 
-halocline <- 7  #this is the halocline based on the salinity plots (it is an approximation)
+halocline <- 5  #this is the halocline based on the salinity plots (it is an approximation)
 
 # Step 2: Make a function that will generate a table for us to print off
 summarize_weekly <- function(df, name) {
