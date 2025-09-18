@@ -123,7 +123,7 @@ if(TRUE){ # Change to TRUE to run, otherwise this step is skipped over
 
 
 # Plot using heatmap to colour values
-if(FALSE) {hist |> 
+if(TRUE) {hist |> 
     filter(
       !abs(z) > 3,
       var %in% c("wtemp", "depth")
@@ -160,7 +160,13 @@ curr <- latest_year_data |>
     depth = if_else(
       station == "Sproat",
       sensor_depthm,
-      levelm - surface_levelm
+      if_else(
+        !is.na(levelm) & !is.na(surface_levelm),#Now checks that both levelm and surface_levelm are #present before subtracting.
+        
+        levelm - surface_levelm,   #Prevents Stamp depth from becoming all NA if one of those columns is missing or empty in the scraped table
+
+        NA_real_
+      )
     ),
     station_time = as.POSIXct(received, format = "%d-%b-%y %I:%M %p"),
     year = format(station_time, "%Y") |> as.numeric(),
@@ -180,7 +186,7 @@ curr <- latest_year_data |>
   # will be based on cooler overnight temps only
   filter(
     date < max(date, na.rm = T),
-    # Only keep the 2024 data
+    # Only keep the 2025 data
     year == max(year, na.rm = T)
   ) |> 
   pivot_longer(
@@ -298,21 +304,16 @@ legend <- c(paste0("Historical average (2013-", curr_yr - 1, ")"), as.character(
     alpha = 0.4,
     fill = "blue"
   ) +
-  geom_line(
-    data = curr_sum %>% 
-      #filter(between(day, 136, 273)) %>% # Option to restrict date range of graph
-      filter(var %in% c("wtemp","depth")) %>% 
-      mutate(
-        var = case_when(
-          var == "wtemp" ~ "Water temperature (°C)",
-          var == "depth" ~ "Sensor depth (m)",
-          TRUE ~ var
+    geom_line(
+      data = curr_sum |>
+        filter(var %in% c("wtemp","depth")) |>
+        mutate(
+          var = recode(var, wtemp = "Water temperature (°C)", depth = "Sensor depth (m)"),
+          date = as.Date(paste0(curr_yr - 1, "-12-31")) + doy
         ),
-        date = as.Date(paste0(curr_yr - 1, "-12-31")) + doy
-      ), 
-    aes(y = `7d.mean`, colour = legend[2]), 
-    linewidth = 1.15
-  ) +
+      aes(y = mean, colour = legend[2]),
+      linewidth = 1.15
+    ) +
   labs(y = NULL, x = NULL) +
   #scale_y_continuous(limits = c(0,30), breaks = seq(0,25, by = 5)) +
   scale_colour_manual(
