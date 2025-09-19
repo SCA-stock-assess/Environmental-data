@@ -113,7 +113,7 @@ hs <- with(
     depth = unique(depth)
   )
 ) |> 
-  left_join(max_depths) |> 
+  left_join(max_depths) |> # Add max depth info for each site/date
   filter(!depth > max_depth) |> 
   select(-max_depth) |> 
   left_join(hs0) |>

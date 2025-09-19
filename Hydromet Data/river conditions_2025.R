@@ -82,8 +82,8 @@ latest_year_data <- pmap(params, get_data) |>
 # Hydromet time series ----------------------------------------------------
 
 
-# The historical time series
-hist <- read_xlsx(here("Hydromet Data", "Hydromets_historic.xlsx"), na = c("","-999")) %>% 
+# The historical time series (added 2024 data to the historic file on Sept 18, 2025 VP)
+hist <- read_xlsx(here("Hydromet Data", "Hydromets_historic - Updated.xlsx"), na = c("","-999")) %>% 
   rename(
     wtemp = water_temp_celcius, 
     atemp = air_temp_celcius,
