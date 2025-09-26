@@ -322,18 +322,6 @@ summary_table
 
 
 
-
-### FIGURE  4 OF IN-SEASON BULLETIN:
-# (do_ts_plot <- ts_p_fn(do, "do_mgl", min_jul, max_jul) + #DO (plus appropriate legend tweaks)
-#     scale_fill_gradientn(
-#       colours = do_pal$colour, 
-#       name = "DO (mg/L)",
-#       labels = as.integer, 
-#       breaks = c(0, 4, 8, 12),
-#       values = scales::rescale(do_pal$value, to = c(0, 1)),
-#     )
-# )
-
 (do_ts_plot <- ts_p_fn(do, "do_mgl", min_jul, max_jul) +
   scale_fill_gradientn(
     colours = do_pal$colour, 
@@ -450,20 +438,6 @@ idxcat_p[["layers"]][[3]][["stat_params"]][["binwidth"]] <- 1 # Change contour s
 
 idxcat_p
 
-
-# Save time series plot
-# ggsave(
-#   filename = paste0(
-#     here("Harbour Survey", "plots"),
-#     "/R-PLOT_time series temp-oxy index",
-#     Sys.Date(),
-#     ".png"
-#   ),
-#   plot = idxcat_p,
-#   height = 7,
-#   width = 9,
-#   units = "in"
-# )
 
 ggsave(
   filename = paste(

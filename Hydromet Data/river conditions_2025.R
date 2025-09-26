@@ -385,7 +385,7 @@ curr |>
   select(-mean_date)
 
 
-#3-day average escapement:(input into Soxsum in rows 433 & 436 about SPR and STP 3 day average water temperature)
+#3-day average escapement:(input into Soxsum in rows 478 & 481 about SPR and STP 3 day average water temperature)
 curr |>  
   distinct(station, station_time, var, .keep_all = TRUE) |> 
   pivot_wider(
@@ -411,7 +411,7 @@ curr |>
 # Individual year comparisons ---------------------------------------------
 
 
-# Compared to 2021 and 2015 (other warm years)
+# Compared to 2021 and 2015 (other warm years) not currently used in the bulletin
 hist_sum |> 
   filter(
     var %in% c("wtemp", "depth"),
