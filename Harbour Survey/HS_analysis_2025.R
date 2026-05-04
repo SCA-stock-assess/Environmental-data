@@ -431,7 +431,16 @@ idxcat_p <- ts_p_fn(idx_c, "idx_cat", min_jul, max_jul) +
     limits = c(0,5)
   # )
 )+
-  scale_x_date(limits = as.Date(c("2025-04-01", NA))) #only look at data from April 1 2025
+  scale_x_date(
+    limits = as.Date(c("2025-04-01", NA)),
+    breaks = seq(
+      from = as.Date("2025-04-01"),
+      to = max(idx_c$date, na.rm = TRUE),
+      by = "1 month"
+    ),
+    labels = scales::label_date("%b")       # show only month name
+  )
+
 
 
 idxcat_p[["layers"]][[3]][["stat_params"]][["binwidth"]] <- 1 # Change contour spacing
@@ -446,7 +455,7 @@ ggsave(
   ),
   plot = idxcat_p,
   height = 7,
-  width = 9,
+  width = 12,
   units = "in"
 )
 

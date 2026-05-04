@@ -5,6 +5,7 @@
 pkgs <- c("here", 'tidyverse', "readxl", "janitor", "httr")
 #install.packages(pkgs)
 
+
 # Load packages
 library(here)
 library(tidyverse); theme_set(theme_bw(base_size = 14))
@@ -14,7 +15,7 @@ library(httr)
 
 
 # State the current year
-curr_yr <- 2024
+curr_yr <- 2025
 
 
 

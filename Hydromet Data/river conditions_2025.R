@@ -123,7 +123,7 @@ if(TRUE){ # Change to TRUE to run, otherwise this step is skipped over
 
 
 # Plot using heatmap to colour values
-if(TRUE) {hist |> 
+if(FALSE) {hist |> 
     filter(
       !abs(z) > 3,
       var %in% c("wtemp", "depth")
@@ -333,7 +333,7 @@ legend <- c(paste0("Historical average (2013-", curr_yr - 1, ")"), as.character(
   coord_cartesian(
     xlim = c(
       as.Date(paste0(curr_yr, "-04-01")), #start plot in April (04) or May (05)
-      as.Date(paste0(curr_yr, "-10-15")) #end in October (10)
+      as.Date(paste0(curr_yr, "-10-30")) #end in October (10)
     )
   ) +
   theme(
@@ -351,7 +351,7 @@ legend <- c(paste0("Historical average (2013-", curr_yr - 1, ")"), as.character(
 # Save the plot
 ggsave(
   plot = comp_plot,
-  filename = here("Hydromet Data", "plots", paste0("R-PLOT_Stamp-Sproat_Hydromets_", Sys.Date(), ".png")), #added the date to the name
+  filename = here("Hydromet Data", "plots", paste0("Fig6_Stamp-Sproat_Hydromets_", Sys.Date(), ".png")), #added the date to the name
   width = 6,
   height = 4.5,
   units = "in"
