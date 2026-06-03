@@ -111,13 +111,19 @@ temps |>
   filter(!if_any(c(temp, q_50), is.na)) |> 
   ggplot(aes(x = temp, y = q_50)) +
   facet_wrap(~system) +
+  geom_hline(
+    yintercept = 0,
+    lty = 2,
+    colour = "grey"
+  ) +
   geom_point(aes(colour = year)) +
   geom_smooth(method = "lm") +
   scale_colour_viridis_c() +
   labs(
     y = "Smolts-per-spawner residuals",
     x = "Mean mid-June to mid-July river temperature (°C)"
-  )
+  ) +
+  theme(panel.grid.minor = element_blank())
 # Possible trend evident for Sproat (noisy)
 
 
@@ -136,13 +142,20 @@ temps |>
   filter(!if_any(c(temp, q_50), is.na)) |> 
   ggplot(aes(x = temp, y = q_50)) +
   facet_wrap(~system) +
+  geom_hline(
+    yintercept = 0,
+    lty = 2,
+    colour = "grey"
+  ) +
   geom_point(aes(colour = year)) +
   geom_smooth(method = "lm") +
   scale_colour_viridis_c() +
   labs(
     y = "Smolts-per-spawner residuals",
     x = "Mean July to August river temperature (°C)"
-  )
+  ) +
+  theme(panel.grid.minor = element_blank())
+# Stronger trend for Sproat
 
 
 # How about # days exceeding 21C?
@@ -163,12 +176,18 @@ temps |>
   filter(!if_any(c(prop_hot_days, q_50), is.na)) |> 
   ggplot(aes(x = prop_hot_days, y = q_50)) +
   facet_wrap(~system) +
+  geom_hline(
+    yintercept = 0,
+    lty = 2,
+    colour = "grey"
+  ) +
   geom_point(aes(colour = year)) +
   geom_smooth(method = "lm") +
   scale_colour_viridis_c() +
   labs(
     y = "Smolts-per-spawner residuals",
     x = "Proportion of measured days between June-Aug with temp. > 21°C"
-  )
+  ) +
+  theme(panel.grid.minor = element_blank())
 
 
