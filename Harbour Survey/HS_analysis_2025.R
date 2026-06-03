@@ -17,7 +17,7 @@ library(reshape2)
 idx_pal <- c("#252525",brewer.pal(n = 11, name = "RdYlGn")[-c(6,11)])
 
 # Analysis year
-curr_yr <- 2025
+curr_yr <- 2026
 
 # Load and manipulate data ---------------------------------------------------
 
@@ -172,7 +172,7 @@ hs <- with(
 
 # set date range for plots.
   max_jul <- max(hs$julian)
-  min_jul <- 150 #max_jul - 60
+  min_jul <- max_jul - 60
 
     ### CHANGE THIS BASED ON WHAT PART YOU ARE INTERESTED IN ###
     #Set the plot for May 1 (julian day = 121) to June 10 (julian day = 161):
@@ -330,7 +330,7 @@ summary_table
     breaks = c(0, 4, 8, 12),
     values = scales::rescale(do_pal$value, to = c(0, 1))
   ) +
-  scale_x_date(limits = as.Date(c("2025-04-01", NA)))) #Only look at April 1 onward (or May if you would prefer)
+  scale_x_date(limits = as.Date(c("2026-04-01", NA)))) #Only look at April 1 onward (or May if you would prefer)
 
 
 # Custom palette for salinity, per Howard's request
@@ -432,9 +432,9 @@ idxcat_p <- ts_p_fn(idx_c, "idx_cat", min_jul, max_jul) +
   # )
 )+
   scale_x_date(
-    limits = as.Date(c("2025-04-01", NA)),
+    limits = as.Date(c("2026-04-01", NA)),
     breaks = seq(
-      from = as.Date("2025-04-01"),
+      from = as.Date("2026-04-01"),
       to = max(idx_c$date, na.rm = TRUE),
       by = "1 month"
     ),
@@ -599,7 +599,7 @@ options(error = NULL)
 max_jul <- max(hs$julian)
 min_jul <- 150 #max_jul - 60
 
-julian_sample_date <- max_jul #original date in 2024: 208
+julian_sample_date <- max_jul 
 
 
 ### FIGURE 5 IN IN-SEASON BULLETIN:

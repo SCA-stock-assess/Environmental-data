@@ -19,7 +19,7 @@ library(askpass)
 
 
 # Current year
-curr_yr <- 2025
+curr_yr <- 2026
 
 
 
@@ -123,7 +123,7 @@ if(TRUE){ # Change to TRUE to run, otherwise this step is skipped over
 
 
 # Plot using heatmap to colour values
-if(FALSE) {hist |> 
+if(TRUE) {hist |> 
     filter(
       !abs(z) > 3,
       var %in% c("wtemp", "depth")
@@ -260,93 +260,130 @@ hist_doy <- hist_sum |>
 
 ### FIGURE 3 IN THE IN-SEASON SOCKEYE BULLETIN:
 # Average graph
-legend <- c(paste0("Historical average (2013-", curr_yr - 1, ")"), as.character(curr_yr))
-
-(comp_plot <- hist_sum |> 
-  filter(var %in% c("wtemp", "depth")) %>% 
-  mutate(
-    var = case_when(
-      var == "wtemp" ~ "Water temperature (°C)",
-      var == "depth" ~ "Sensor depth (m)",
-      TRUE ~ var
-    )
-  ) %>% 
-  ggplot(aes(as.Date(doy + as.Date(paste0(curr_yr - 1, "-12-31"))), mean)) +
-  facet_grid(
-    var ~ station, 
-    scales = "free_y", 
-    switch = "y"
-  ) +
-  geom_smooth(
-    aes(colour = legend[1]), 
-    method = "loess",
-    span = 0.5,
-    se = FALSE,
-    linewidth = 0.5
-  ) +
-  geom_ribbon(
-    data = hist_doy |> 
-      filter(var %in% c("wtemp", "depth")) %>% 
-      mutate(
-        var = case_when(
-          var == "wtemp" ~ "Water temperature (°C)",
-          var == "depth" ~ "Sensor depth (m)",
-          TRUE ~ var
-        ),
-        date = as.Date(paste0(curr_yr - 1, "-12-31")) + doy
-      ) |> 
-      group_by(var, station) |> 
-      mutate(
-        ymin_smooth = stats::predict(loess(min ~ doy, span = 0.5)),
-        ymax_smooth = stats::predict(loess(max ~ doy, span = 0.5))
-      ),
-    aes(ymin = ymin_smooth, ymax = ymax_smooth),
-    alpha = 0.4,
-    fill = "blue"
-  ) +
-    geom_line(
-      data = curr_sum |>
-        filter(var %in% c("wtemp","depth")) |>
-        mutate(
-          var = recode(var, wtemp = "Water temperature (°C)", depth = "Sensor depth (m)"),
-          date = as.Date(paste0(curr_yr - 1, "-12-31")) + doy
-        ),
-      aes(y = mean, colour = legend[2]),
-      linewidth = 1.15
-    ) +
-  labs(y = NULL, x = NULL) +
-  #scale_y_continuous(limits = c(0,30), breaks = seq(0,25, by = 5)) +
-  scale_colour_manual(
-    "", 
-    values = set_names(c("blue", "red"), legend)
-  ) +
-  scale_x_date(
-    date_labels = "%b", 
-    breaks = seq.Date(
-      as.Date(paste0(curr_yr, "-01-01")), 
-      as.Date(paste0(curr_yr, "-12-31")), 
-      by = "month"
-    ),
-    expand = c(0,0)
-  ) + 
-  guides(fill = "none") +
-  coord_cartesian(
-    xlim = c(
-      as.Date(paste0(curr_yr, "-04-01")), #start plot in April (04) or May (05)
-      as.Date(paste0(curr_yr, "-10-30")) #end in October (10)
-    )
-  ) +
-  theme(
-    legend.position = c(0.5,0.9),
-    legend.direction = "horizontal",
-    legend.background = element_rect(colour="black"),
-    strip.background.y = element_blank(),
-    strip.background.x = element_rect(fill = "white", colour = "black"),
-    strip.placement = "outside",
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
+# Pre-compute ribbon smooths and shared label recode
+recode_var <- function(x) case_when(
+   x == "wtemp" ~ "Water temperature (°C)",
+   x == "depth" ~ "Sensor depth (m)",
+   TRUE ~ x
 )
-  
+
+hist_doy_smooth <- hist_doy |>
+   filter(var %in% c("wtemp", "depth")) |>
+   mutate(
+      var  = recode_var(var),
+      date = as.Date(paste0(curr_yr - 1, "-12-31")) + doy
+   ) |>
+   group_by(var, station) |>
+   mutate(
+      ymin_smooth = predict(loess(min ~ doy, span = 0.5)),
+      ymax_smooth = predict(loess(max ~ doy, span = 0.5))
+   ) |>
+   ungroup()
+
+hist_sum_plot <- hist_sum |>
+   filter(var %in% c("wtemp", "depth")) |>
+   mutate(
+      var  = recode_var(var),
+      date = as.Date(paste0(curr_yr - 1, "-12-31")) + doy
+   )
+
+curr_sum_plot <- curr_sum |>
+   filter(var %in% c("wtemp", "depth")) |>
+   mutate(
+      var  = recode_var(var),
+      date = as.Date(paste0(curr_yr - 1, "-12-31")) + doy
+   )
+
+# Colours
+col_hist   <- "#4E84C4"   # medium blue — historical smooth line
+col_ribbon <- "#A8C8E8"   # light blue  — historical range ribbon
+col_curr   <- "#C0392B"   # muted red   — current year line
+
+legend <- c(
+   paste0("Historical average (2013-", curr_yr - 1, ")"),
+   as.character(curr_yr)
+)
+
+(comp_plot <- ggplot(hist_sum_plot, aes(x = date, y = mean)) +
+      facet_grid(
+         var ~ station,
+         scales = "free_y",
+         switch = "y"
+      ) +
+      geom_ribbon(
+         data = hist_doy_smooth,
+         aes(ymin = ymin_smooth, ymax = ymax_smooth),
+         fill  = col_ribbon,
+         alpha = 0.5,
+         colour = NA
+      ) +
+      geom_smooth(
+         aes(colour = legend[1]),
+         method    = "loess",
+         span      = 0.5,
+         se        = FALSE,
+         linewidth = 0.6
+      ) +
+      geom_line(
+         data = curr_sum_plot,
+         aes(y = mean, colour = legend[2]),
+         linewidth = 1.55
+      ) +
+      scale_colour_manual(
+         "",
+         values = setNames(c(col_hist, col_curr), legend)
+      ) +
+      scale_x_date(
+         date_labels = "%b",
+         breaks = seq.Date(
+            as.Date(paste0(curr_yr, "-01-01")),
+            as.Date(paste0(curr_yr, "-12-31")),
+            by = "month"
+         ),
+         expand = c(0, 0)
+      ) +
+      coord_cartesian(
+         xlim = c(
+            as.Date(paste0(curr_yr, "-04-01")),
+            as.Date(paste0(curr_yr, "-10-30"))
+         )
+      ) +
+      labs(y = NULL, x = NULL) +
+      guides(fill = "none") +
+      theme_bw(base_size = 11) +
+      theme(
+         # Legend
+         legend.position   = "top",
+         legend.direction  = "horizontal",
+         legend.background = element_rect(colour = "grey70", fill = "white"),
+         legend.key        = element_blank(),
+         # Facet strips
+         strip.background.x = element_rect(fill = "grey92", colour = "grey40"),
+         strip.background.y = element_blank(),
+         strip.text.x       = element_text(face = "bold", size = 11),
+         strip.text.y       = element_text(size = 10),
+         strip.placement    = "outside",
+         # Panel borders — theme_bw gives a clean box, just refine colour
+         panel.border       = element_rect(colour = "grey40", fill = NA),
+         panel.grid.major   = element_line(colour = "grey90"),
+         panel.grid.minor   = element_blank(),
+         # Axis
+         axis.text.x = element_text(angle = 45, hjust = 1)
+      )
+)
+
+curr_sum_plot |>
+  filter(station == "Stamp", var == "Sensor depth (m)") |>
+  summarise(
+    n_total    = n(),
+    n_na_mean  = sum(is.na(mean)),
+    n_na_date  = sum(is.na(date)),
+    date_range = paste(min(date, na.rm = TRUE), "to", max(date, na.rm = TRUE))
+  )
+
+latest_year_data |>
+  filter(station == "Stamp") |>
+  glimpse()
 
 # Save the plot
 ggsave(

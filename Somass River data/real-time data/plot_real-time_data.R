@@ -15,7 +15,7 @@ library(httr)
 
 
 # State the current year
-curr_yr <- 2025
+curr_yr <- 2026
 
 
 
