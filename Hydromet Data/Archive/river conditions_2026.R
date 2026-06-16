@@ -1,11 +1,5 @@
 # Packages & functions ----------------------------------------------------
 
-pkgs <- c(
-  "tidyverse","readxl","purrr","zoo", "here", "magrittr","janitor", "mgcv",
-  "rvest", "askpass"
-  )
-# install.packages(pkgs)
-
 library(here)
 library(tidyverse); theme_set(theme_bw(base_size = 14))
 library(readxl)
@@ -493,6 +487,7 @@ hist_sum |>
     expand = c(0,0)
   ) + 
   guides(fill = "none") +
+  scale_x_date(date_labels = "%b", date_breaks = "1 month", expand = c(0, 0)) +
   coord_cartesian(
     xlim = c(as.Date(paste0(curr_yr, "-05-01")), as.Date(paste0(curr_yr, "-10-15")))
   ) +

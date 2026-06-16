@@ -70,7 +70,6 @@ hs0 <- filenames |>
       TRUE ~ dist_km
     )
   ) |> 
-  #filter(!between(date, as.Date("2022-04-01"), as.Date("2022-04-30"))) |> # Remove April surveys conducted using handheld probe
   select(date, julian, site, Depth:DO_Sat, dist_km, plotting_shift) |> 
   rename(
     "temp" = "WaterTempC",
@@ -92,9 +91,9 @@ hs0 |>
   summarize(
     across(
       temp:do_mgl, 
-      .fns = list(mean=mean, sd=sd), 
-      .names = "{.fn}_{.col}", 
-      na.rm = T
+      .fns = list(mean = \(x) mean(x, na.rm = TRUE), 
+                  sd   = \(x) sd(x, na.rm = TRUE)),
+      .names = "{.fn}_{.col}"
     )
   )
 # We want the index to reflect moderate temps as 15C not 11.5C and 
@@ -172,11 +171,11 @@ hs <- with(
 
 # set date range for plots.
   max_jul <- max(hs$julian)
-  min_jul <- max_jul - 60
+  min_jul <- max_jul - 40
 
     ### CHANGE THIS BASED ON WHAT PART YOU ARE INTERESTED IN ###
     #Set the plot for May 1 (julian day = 121) to June 10 (julian day = 161):
-    min_jul <- 1
+    min_jul <- 121
 
 
 
@@ -258,7 +257,7 @@ ts_p_fn <- function(df, hs_var, min_julian, max_julian) {
     labs(y = "Depth (m)", x = NULL) +
     scale_y_reverse(expand = c(0,0), labels = as.integer) +
     scale_x_date(
-      limits = as.Date(c("2025-01-01", max_julian)), #add limits so it only stays within 2025
+      limits = as.Date(c("2026-05-01", max_julian)), #add limits so it only stays within 2026
       expand = c(0,0), 
       breaks = "2 weeks", 
       date_labels = "%d %b"
@@ -622,27 +621,6 @@ julian_sample_date <- max_jul
     )
 )
 
-
-
-
-# Save plots
-# list(xs_plot_do, xs_plot_idx) |> 
-#   set_names(c("DO", "Index")) |> 
-#   iwalk(
-#     ~ggsave(
-#       plot = .x, 
-#       filename = paste0(
-#         here("Harbour Survey", "plots"),
-#         "/R-PLOT_Inlet cross section",
-#         .y,
-#         Sys.Date(),
-#         ".png"
-#       ),
-#       height = 3,
-#       width = 8,
-#       units = "in"
-#     )
-#   )
 
 list(xs_plot_do, xs_plot_idx) |> 
   set_names(c("DO", "Index")) |> 
