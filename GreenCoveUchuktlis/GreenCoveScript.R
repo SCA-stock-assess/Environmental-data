@@ -64,19 +64,6 @@ GreenCoveLong <- GreenCoveCleaned %>%
     )
 )
 
-
-
-GreenCoveLong |>
-  filter(Variable == "DO (%sat)") |>
-  mutate(Date = as.Date(DateTime, tz = "America/Los_Angeles")) |>
-  summarise(mean = mean(Measurement, na.rm = TRUE),
-            lo   = min(Measurement, na.rm = TRUE),
-            hi   = max(Measurement, na.rm = TRUE), .by = Date) |>
-  ggplot(aes(Date)) +
-  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.2) +
-  geom_line(aes(y = mean)) +
-  theme_bw()
-
 GCPlotForBulletin<- GreenCoveLong  |>
   mutate(Date = as.Date(DateTime, tz = "America/Los_Angeles")) |>
   summarise(Measurement = mean(Measurement, na.rm = TRUE), .by = c(Date, Variable)) |>
@@ -88,9 +75,12 @@ GCPlotForBulletin<- GreenCoveLong  |>
   labs(x = NULL, y = NULL)+
   theme(panel.grid = element_blank())
 
+
+# See which method here() used to find the root (helpful for debugging and when not finding the saved files)
+here::here()
 ggsave(
   plot = GCPlotForBulletin,
-  filename = here("GreenCoveUchuktlis", "Plots", paste0("GreenCoveWQ", Sys.Date(), ".png")), #added the date to the name
+  filename = here(paste0("GreenCoveWQ", Sys.Date(), ".png")), #added the date to the name
   width = 6.5,
   height = 5.5,
   units = "in"

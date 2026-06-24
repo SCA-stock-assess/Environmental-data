@@ -171,12 +171,7 @@ hs <- with(
 
 # set date range for plots.
   max_jul <- max(hs$julian)
-  min_jul <- max_jul - 40
-
-    ### CHANGE THIS BASED ON WHAT PART YOU ARE INTERESTED IN ###
-    #Set the plot for May 1 (julian day = 121) to June 10 (julian day = 161):
-    min_jul <- 121
-
+  min_jul <- max_jul - 80
 
 
 # Define colour palette for DO (requires max DO value from hs)
@@ -364,17 +359,6 @@ ggsave(
 )
 
 
-#Save the salinity plot:
-ggsave(
-  filename = paste(
-    here("Harbour Survey", "plots", paste0("R-PLOT_time series salinity ", Sys.Date(), ".png")),
-    sep = ""
-  ),
-  plot = sal_p,
-  height = 7,
-  width = 9,
-  units = "in"
-)
 
 
 
