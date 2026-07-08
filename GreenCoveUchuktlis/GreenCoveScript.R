@@ -7,7 +7,7 @@ library(lubridate)
 library(here)
 
 # ── 1. Parse & rename ────────────────────────────────────────────────────────
-dput(names(GreenCoveCleaned)) #to get the column names easily
+#dput(names(GreenCoveCleaned)) #to get the column names easily
 GreenCove<- read.csv("Green Cove Data 2026.csv") %>% 
  rename(
     DateTimeRaw = Date.Time.US.Pacific. ,
