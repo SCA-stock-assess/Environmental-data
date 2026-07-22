@@ -306,7 +306,7 @@ comp_plot <- ggplot(hist_sum_plot, aes(x = date, y = mean)) +
   geom_line(
     data      = curr_sum_plot,
     aes(y = mean, colour = legend[2]),
-    linewidth = 1.55
+    linewidth = 0.85
   ) +
   scale_colour_manual(
     "",
