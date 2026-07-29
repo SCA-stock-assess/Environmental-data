@@ -43,7 +43,7 @@ hs0 <- filenames |>
       mutate(Time = as.character(Time)) |> #make time a character to standardize it 
       select(-`Meter Unit`) #remove the Meter Unit column
   ) |>  
-  select(-pH) |>   #remove the pH column
+#  select(-pH) |>   #remove the pH column
   mutate(
     site = case_when(
       StationCd == "PASR" ~ "River",
