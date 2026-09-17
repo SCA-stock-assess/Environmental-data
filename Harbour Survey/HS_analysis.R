@@ -17,7 +17,7 @@ library(reshape2)
 idx_pal <- c("#252525",brewer.pal(n = 11, name = "RdYlGn")[-c(6,11)])
 
 # Analysis year
-curr_yr <- 2024
+curr_yr <- 2026
 
 # Load and manipulate data ---------------------------------------------------
 
